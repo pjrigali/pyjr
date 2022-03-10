@@ -1,5 +1,5 @@
 """
-Componet functions.
+Component functions.
 
 Usage:
  ./utils/base.py
@@ -8,29 +8,30 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from typing import List, Optional, Union
+import collections
 import numpy as np
 import pandas as pd
 pd.set_option('use_inf_as_na', True)
+class_dict = {'float': float, 'int': int, 'str': str, 'object': object}
 
 
-def _to_list(data: Union[list, np.ndarray, pd.Series, int, float, str]) -> Union[List[int], List[float], List[str], float, int, str]:
+def _to_list(data) -> list:
     """Converts list-adjacent objects to a list"""
-    with type(data) as datatype:
-        if datatype == list:
-            return data
-        elif datatype == pd.Series:
-            return data.to_list()
-        elif datatype == np.ndarray:
-            return data.tolist()
-        elif datatype == set:
+    if isinstance(data, list):
+        return data
+    elif isinstance(data, pd.Series):
+        return data.to_list()
+    elif isinstance(data, np.ndarray):
+        return data.tolist()
+    elif isinstance(data, (set, collections.abc.KeysView, collections.abc.ValuesView)):
+        return list(data)
+    elif isinstance(data, (int, float, str, object)):
+        return [data]
+    else:
+        try:
             return list(data)
-        elif datatype in {int: True, float: True, str: True}:
-            return [data]
-        else:
-            try:
-                return list(data)
-            except:
-                raise AttributeError('data needs to have a type of {np.ndarray, pd.Series, list}')
+        except:
+            raise AttributeError('data needs to have a type of {np.ndarray, pd.Series, list, set, int, float, str, object}')
 
 
 def _check_list(data) -> list:
@@ -38,27 +39,15 @@ def _check_list(data) -> list:
     return _to_list(data=data)
 
 
-def _to_type(value: Union[float, int, str], value_type: str = 'float') -> Union[float, int, str]:
+def _to_type(value: Union[float, int, str, object], value_type: str = 'float') -> Union[float, int, str, object]:
     """Converts value to a set type"""
-    with type(value) as datatype:
-        if value_type == 'float':
-            if datatype == float:
-                return value
-            else:
-                return float(value)
-        elif value_type == 'int':
-            if datatype == int:
-                return value
-            else:
-                return int(value)
-        elif value_type == 'str':
-            if datatype == str:
-                return value
-            else:
-                return str(value)
-        else:
-            raise AttributeError('val_type not one of {float, int, str}.')
-
+    if isinstance(value, class_dict[value_type]):
+        return value
+    else:
+        try:
+            return class_dict[value_type](value)
+        except:
+            return value
 
 def _check_type(data: list, value_type: str = 'float') -> list:
     """Checks type of values in a list"""
@@ -74,7 +63,7 @@ def _check_na(value) -> bool:
     :rtype: bool.
     :note: *None*
     """
-    if value == value and value is not None:
+    if value == value and value is not None and value != np.inf and value != -np.inf:
         return False
     else:
         return True
@@ -82,7 +71,7 @@ def _check_na(value) -> bool:
 
 def _remove_nan(data: list) -> list:
     """Remove Nan values from a list"""
-    return [val for val in data if _check_na(val) is True]
+    return [val for val in data if _check_na(val) is False]
 
 
 def _round_to(data: Union[list, pd.Series, np.ndarray, float, int], val: float, remainder: bool = False) -> Union[list, float]:
@@ -97,23 +86,24 @@ def _round_to(data: Union[list, pd.Series, np.ndarray, float, int], val: float, 
     :return: Returns a value or list of values.
     :note: *None*
     """
-    with type(data) as datatype:
-        if datatype not in {list: True, pd.Series: True, np.ndarray: True}:
-            if remainder is True:
-                return round(_to_type(value=data, value_type='float') * val) / val
-            else:
-                return round(_to_type(value=data, value_type='float') / val) * val
-        elif datatype in {float: True, int: True}:
-            data = (_to_type(value=i, value_type='float') for i in data)
-            if remainder is True:
-                return [round(item * val) / val for item in data]
-            else:
-                return [round(item / val) * val for item in data]
+    datatype = type(data)
+
+    if isinstance(data, (float, int)):
+        if remainder is True:
+            return round(_to_type(value=data, value_type='float') * val) / val
         else:
-            raise AttributeError('Value not one of the specified types.')
+            return round(_to_type(value=data, value_type='float') / val) * val
+    elif isinstance(data, (list, pd.Series, np.ndarray)):
+        data = (_to_type(value=i, value_type='float') for i in _check_list(data=data))
+        if remainder is True:
+            return [round(item * val) / val for item in data]
+        else:
+            return [round(item / val) * val for item in data]
+    else:
+        raise AttributeError('Value not one of the specified types.')
 
 
-def _unique_values(data: list) -> list:
+def _unique_values(data: list, count: False) -> list:
     """
     Finds unique values from a list.
 
@@ -122,7 +112,55 @@ def _unique_values(data: list) -> list:
     :return: Returns either a list or dict.
     :note: *None*
     """
-    return _check_type(data=set(data), value_type='float')
+    if count:
+        return {i: data.count(i) for i in set(data)}
+    else:
+        return _check_type(data=set(data), value_type='float')
+
+
+# def _temp_unique_values(data: Union[list, np.ndarray, pd.Series],
+#                         count: bool = False,
+#                         order: bool = False,
+#                         indexes: bool = False,
+#                         na_handling: str = 'none',
+#                         value_type: str = 'float',
+#                         std_value: int = 3,
+#                         median_value: float = 0.023,
+#                         cap_zero: bool = True,
+#                         ddof: int = 1):
+#     """
+#     Finds unique values from a list.
+#
+#     :param data: Input data.
+#     :type data: list.
+#     :param count: Whether to count the values.
+#     :param order: Whether to sort() the values.
+#     :param indexes: Whether to return the indexes.
+#     :return: Returns either a list or dict.
+#     :note: *None*
+#     """
+#     default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+#                'cap_zero': True, 'ddof': 1}
+#     new_data = Args(args=(locals(), default)).data
+#     if order:
+#         temp_dic, temp_lst = {}, []
+#         for item in new_data:
+#             if item not in temp_dic:
+#                 temp_dic[item] = True
+#                 temp_lst.append(item)
+#         return temp_lst
+#     if count:
+#         return {i: new_data.count(i) for i in set(new_data)}
+#     if indexes:
+#         temp_dic, ind_dic = {}, {}
+#         for ind, item in enumerate(new_data):
+#             if item in temp_dic:
+#                 ind_dic[item].append(ind)
+#             else:
+#                 temp_dic[item] = True
+#                 ind_dic[item] = [ind]
+#         return ind_dic
+#     return _to_list(data=set(new_data))
 
 
 def _search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, float, int]:
@@ -153,13 +191,13 @@ def _max(data: list) -> float:
     :return: Maximum value.
     :note: *None*
     """
-    with len(data) as length:
-        if length > 1:
-            return _to_type(value=max(data), value_type='float')
-        elif length == 0:
-            return 0.0
-        else:
-            return _to_type(value=data, value_type='float')
+    length = len(data)
+    if length > 1:
+        return _to_type(value=max(data), value_type='float')
+    elif length == 0:
+        return 0.0
+    else:
+        return _to_type(value=data, value_type='float')
 
 
 def _min(data: list) -> float:
@@ -171,13 +209,13 @@ def _min(data: list) -> float:
     :return: Minimum value.
     :note: *None*
     """
-    with len(data) as length:
-        if length > 1:
-            return _to_type(value=min(data), value_type='float')
-        elif length == 0:
-            return 0.0
-        else:
-            return _to_type(value=data, value_type='float')
+    length = len(data)
+    if length > 1:
+        return _to_type(value=min(data), value_type='float')
+    elif length == 0:
+        return 0.0
+    else:
+        return _to_type(value=data, value_type='float')
 
 
 def _mean(data: list) -> float:
@@ -206,7 +244,7 @@ def _variance(data: list, ddof: int = 1) -> float:
     :note: *None*
     """
     mu = _mean(data=data)
-    return sum((x - mu) ** 2 for x in data) / (len(data) - ddof)
+    return sum(((x - mu) ** 2 for x in data)) / (len(data) - ddof)
 
 
 def _std(data: list, ddof: int = 1) -> float:
@@ -233,13 +271,13 @@ def _sum(data: list) -> float:
     :return: Sum value.
     :note: *None*
     """
-    with len(data) as length:
-        if length > 1:
-            return _to_type(value=sum(data), value_type='float')
-        elif length == 0:
-            return 0.0
-        else:
-            return _to_type(value=data, value_type='float')
+    length = len(data)
+    if length > 1:
+        return _to_type(value=sum(data), value_type='float')
+    elif length == 0:
+        return 0.0
+    else:
+        return _to_type(value=data, value_type='float')
 
 
 def _median(data: list) -> float:
@@ -324,7 +362,7 @@ def _kurtosis(data: list, length: int) -> float:
     return (((_sum(data=[i - mu for i in data])**4) / length) / stdn) - 3
 
 
-def _percentile(data: list, length: int, q: float, val_type: str = 'float') -> float:
+def _percentile(data: list, length: int, q: float, value_type: str = 'float') -> float:
     """
     Find the percentile value of a list.
 
@@ -334,22 +372,22 @@ def _percentile(data: list, length: int, q: float, val_type: str = 'float') -> f
     :type length: int.
     :param q: Percentile percent.
     :type q: float.
-    :param val_type: Desired type.
-    :type val_type: str.
+    :param value_type: Desired type.
+    :type value_type: str.
     :return: Percentile value.
     :note: *None*
     """
     if length == 0:
         return 0.0
-    data = _round_to(data=[item * 1000.0 for item in data], val=1, val_type=val_type)
-    ind = _round_to(data=length * q, val=1, val_type=val_type)
+    data = _round_to(data=[item * 1000.0 for item in data], val=1)
+    ind = _round_to(data=length * q, val=1)
     data.sort()
     for item in data:
-        if item >= ind:
-            return _to_type(value=item / 1000.0, value_type='float')
+        if item >= data[ind]:
+            return _to_type(value=item / 1000.0, value_type=value_type)
 
 
-def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], val_type: str = 'float'):
+def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], value_type: str = 'float'):
     """
     Calculate various percentiles for a list.
 
@@ -359,12 +397,12 @@ def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], val_type
     :type length: int.
     :param q_lst: Desired percentile percents.
     :type q_lst: List of floats.
-    :param val_type: Desired type.
-    :type val_type: str.
+    :param value_type: Desired type.
+    :type value_type: str.
     :return: A group of stats.
     :note: *None*
     """
-    return (_percentile(data=data, length=length, q=q, val_type=val_type) for q in q_lst)
+    return (_percentile(data=data, length=length, q=q, value_type=value_type) for q in q_lst)
 
 
 def _replacement_value(data: list, na_handling: str = 'median', std_value: int = 3, cap_zero: bool = True,
@@ -400,24 +438,23 @@ def _replacement_value(data: list, na_handling: str = 'median', std_value: int =
         else:
             return val
     elif na_handling == 'median':
-        return _percentile(data=data, length=len(data), q=median_value, val_type='float')
+        return _percentile(data=data, length=len(data), q=median_value, value_type='float')
     elif na_handling == 'none':
         return None
 
 
 def _replace_na(data: list, replacement_value: Optional[float] = None) -> list:
     """Replace Nan values with replacement value"""
-
     if replacement_value is None:
         return _remove_nan(data=data)
     else:
-        return [val if _check_na(value=val) is True else replacement_value for val in data]
+        return [val if _check_na(value=val) is False else replacement_value for val in data]
 
 
 def _prep(data, value_type: str = 'float', na_handling: str = 'median', std_value: int = 3, median_value: float = 0.023,
           cap_zero: bool = True, ddof: int = 1):
-    with _check_type(data=_check_list(data=data), value_type=value_type) as data_lst:
-        na_value = _replacement_value(data=data_lst, na_handling=na_handling, std_value=std_value,
-                                      median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-        return _replace_na(data=data_lst, replacement_value=na_value)
+    data_lst = _check_type(data=_check_list(data=data), value_type=value_type)
+    na_value = _replacement_value(data=data_lst, na_handling=na_handling, std_value=std_value,
+                                  median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+    return _replace_na(data=data_lst, replacement_value=na_value)
 
