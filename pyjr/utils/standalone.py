@@ -307,7 +307,7 @@ def native_max(data: Union[list, np.ndarray, pd.Series],
     with _prep_args(args=args) as data:
         with len(data) as lst_len:
             if lst_len > 1:
-                largest = 0
+                largest = 0.0
                 for i in data:
                     if i > largest:
                         largest = i
@@ -317,6 +317,41 @@ def native_max(data: Union[list, np.ndarray, pd.Series],
             else:
                 return data
 
+
+def native_min(data: Union[list, np.ndarray, pd.Series],
+               na_handling: str = 'none',
+               value_type: str = 'float',
+               std_value: int = 3,
+               median_value: float = 0.023,
+               cap_zero: bool = True,
+               ddof: int = 1) -> Union[float, int]:
+    """
+
+    Calculate Min of a list.
+
+    :param data: Input data.
+    :type data: list, np.ndarray, or pd.Series
+    :return: Returns the min value.
+    :rtype: float
+    :example: *None*
+    :note: *None*
+
+    """
+    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
+    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    with _prep_args(args=args) as data:
+        with len(data) as lst_len:
+            if lst_len > 1:
+                smallest = 0.0
+                for i in data:
+                    if i < smallest:
+                        smallest = i
+                return smallest
+            elif lst_len == 0:
+                return 0.0
+            else:
+                return data
 
 # def unique_values(data: Union[list, np.ndarray, pd.Series], count: Optional[bool] = None, order: Optional[bool] = None,
 #                   indexes: Optional[bool] = None, keep_nan: Optional[bool] = False) -> Union[list, dict]:
