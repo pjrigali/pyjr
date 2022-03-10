@@ -15,22 +15,22 @@ from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _
 from pyjr.utils.base import _percentiles, _unique_values, _check_na, _to_list, _check_list, _prep
 
 
-def _stats(data: list, length: int, ddof: int = 1):
-    """
-    Calculate various stats for a list.
-
-    :param data: Input data.
-    :type data: list.
-    :param length: Length of input data.
-    :type length: int.
-    :param ddof: Desired Degrees of Freedom.
-    :type ddof: int.
-    :return: A group of stats.
-    :note: *None*
-    """
-    return _min(data=data), _max(data=data), _mean(data=data), _variance(data=data, ddof=ddof), \
-           _std(data=data, ddof=ddof), _sum(data=data), _median(data=data), _mode(data=data), \
-           _skew(data=data, length=length), _kurtosis(data=data, length=length)
+# def _stats(data: list, length: int, ddof: int = 1):
+#     """
+#     Calculate various stats for a list.
+#
+#     :param data: Input data.
+#     :type data: list.
+#     :param length: Length of input data.
+#     :type length: int.
+#     :param ddof: Desired Degrees of Freedom.
+#     :type ddof: int.
+#     :return: A group of stats.
+#     :note: *None*
+#     """
+#     return _min(data=data), _max(data=data), _mean(data=data), _variance(data=data, ddof=ddof), \
+#            _std(data=data, ddof=ddof), _sum(data=data), _median(data=data), _mode(data=data), \
+#            _skew(data=data, length=length), _kurtosis(data=data, length=length)
 
 
 @dataclass
