@@ -1,5 +1,15 @@
-from base import _check_list, _replace_na, _to_type
-from base import _remove_nan, _mean, _std, _percentile
+"""
+Arg functions.
+
+Usage:
+ ./utils/args.py
+
+Author:
+ Peter Rigali - 2022-03-10
+"""
+from typing import Union
+from pyjr.utils.base import _check_list, _replace_na, _to_type, _check_type
+from pyjr.utils.base import _remove_nan, _mean, _std, _percentile
 
 
 def native_sum_args(args) -> Union[float, int]:
@@ -15,16 +25,14 @@ def native_sum_args(args) -> Union[float, int]:
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len > 1:
-                return sum(data)
-            elif lst_len == 0:
-                return 0.0
-            else:
-                return data
+    data = _prep_args(args=args)
+    lst_len = len(data)
+    if lst_len > 1:
+        return sum(data)
+    elif lst_len == 0:
+        return 0.0
+    else:
+        return data
 
 
 def native_mean_args(args) -> Union[float, int]:
@@ -41,12 +49,12 @@ def native_mean_args(args) -> Union[float, int]:
 
     """
     data, value_type, na_handling, std_value, median_value, cap_zero, ddof = args
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len != 0:
-                return _to_type(value=sum(data) / lst_len, value_type=value_type)
-            else:
-                return _to_type(value=0.0, value_type=value_type)
+    new_data = _prep_args(args=args)
+    lst_len = len(new_data)
+    if lst_len != 0:
+        return _to_type(value=sum(new_data) / lst_len, value_type=value_type)
+    else:
+        return _to_type(value=0.0, value_type=value_type)
 
 
 def native_variance_args(args) -> Union[float, int]:
@@ -65,9 +73,9 @@ def native_variance_args(args) -> Union[float, int]:
 
     """
     data, value_type, na_handling, std_value, median_value, cap_zero, ddof = args
-    with _prep_args(args=args) as data:
-        with native_mean_args(args=args) as mu:
-            return _to_type(value=sum((x - mu) ** 2 for x in data) / (len(data) - ddof), value_type=value_type)
+    new_data = _prep_args(args=args)
+    mu = native_mean_args(args=args)
+    return _to_type(value=sum((x - mu) ** 2 for x in new_data) / (len(new_data) - ddof), value_type=value_type)
 
 
 def native_std_args(args) -> Union[float, int]:
@@ -85,7 +93,8 @@ def native_std_args(args) -> Union[float, int]:
     :note: *None*
 
     """
-    return _to_type(data=native_variance_args(args=args) ** .5, value_type=value_type)
+    data, value_type, na_handling, std_value, median_value, cap_zero, ddof = args
+    return _to_type(value=native_variance_args(args=args) ** .5, value_type=value_type)
 
 
 def native_median_args(args) -> Union[float, int]:
@@ -103,16 +112,16 @@ def native_median_args(args) -> Union[float, int]:
 
     """
     data, value_type, na_handling, std_value, median_value, cap_zero, ddof = args
-    with _prep_args(args=args) as data:
-        with sorted(data) as sorted_lst:
-            with len(data) as lst_len:
-                with (lst_len - 1) // 2 as index:
-                    if lst_len % 2:
-                        return _to_type(value=sorted_lst[index], value_type=value_type)
-                    else:
-                        new_data = [sorted_lst[index]] + [sorted_lst[index + 1]]
-                        new_args = (new_data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-                        return native_mean_args(args=new_args)
+    new_data = _prep_args(args=args)
+    sorted_lst = sorted(new_data)
+    lst_len = len(new_data)
+    index = (lst_len - 1) // 2
+    if lst_len % 2:
+        return _to_type(value=sorted_lst[index], value_type=value_type)
+    else:
+        new_data = [sorted_lst[index]] + [sorted_lst[index + 1]]
+        new_args = (new_data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+        return native_mean_args(args=new_args)
 
 
 def _replacement_value_args(args) -> float:
@@ -155,6 +164,6 @@ def _replacement_value_args(args) -> float:
 
 def _prep_args(args):
     data, value_type, na_handling, std_value, median_value, cap_zero, ddof = args
-    with _check_type(data=_check_list(data=data), value_type=value_type) as data_lst:
-        new_args = (data_lst, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-        return _replace_na(data=data_lst, replacement_value=_replacement_value_args(args=new_args))
+    data_lst = _check_type(data=_check_list(data=data), value_type=value_type)
+    new_args = (data_lst, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    return _replace_na(data=data_lst, replacement_value=_replacement_value_args(args=new_args))
