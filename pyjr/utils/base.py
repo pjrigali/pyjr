@@ -7,293 +7,125 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
-
 from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
-from poker.processor import class_object_lst
 pd.set_option('use_inf_as_na', True)
 
 
-def _to_list(data: Union[list, np.ndarray, pd.Series, int, float]) -> Union[List[int], List[float], float, int]:
-    """Converts list adjacent objects to a list and passes int/float objects"""
-    if type(data) == list:
-        return data
-    elif type(data) in [np.ndarray, pd.Series]:
-        return data.tolist()
-    elif type(data) in [int, float]:
-        return data
+def _to_list(data: Union[list, np.ndarray, pd.Series, int, float, str]) -> Union[List[int], List[float], List[str], float, int, str]:
+    """Converts list-adjacent objects to a list"""
+    with type(data) as datatype:
+        if datatype == list:
+            return data
+        elif datatype == pd.Series:
+            return data.to_list()
+        elif datatype == np.ndarray:
+            return data.tolist()
+        elif datatype == set:
+            return list(data)
+        elif datatype in {int: True, float: True, str: True}:
+            return [data]
+        else:
+            try:
+                return list(data)
+            except:
+                raise AttributeError('data needs to have a type of {np.ndarray, pd.Series, list}')
+
+
+def _check_list(data) -> list:
+    """Checks if an object is a list"""
+    return _to_list(data=data)
+
+
+def _to_type(value: Union[float, int, str], value_type: str = 'float') -> Union[float, int, str]:
+    """Converts value to a set type"""
+    with type(value) as datatype:
+        if value_type == 'float':
+            if datatype == float:
+                return value
+            else:
+                return float(value)
+        elif value_type == 'int':
+            if datatype == int:
+                return value
+            else:
+                return int(value)
+        elif value_type == 'str':
+            if datatype == str:
+                return value
+            else:
+                return str(value)
+        else:
+            raise AttributeError('val_type not one of {float, int, str}.')
+
+
+def _check_type(data: list, value_type: str = 'float') -> list:
+    """Checks type of values in a list"""
+    return [_to_type(value=val, value_type=value_type) for val in data]
+
+
+def _check_na(value) -> bool:
+    """
+    Checks a value to see if Nan.
+
+    :param value: Input value.
+    :return: Returns True or False if the value is Nan.
+    :rtype: bool.
+    :note: *None*
+    """
+    if value == value and value is not None:
+        return False
     else:
-        raise AttributeError('data needs to have a type of {np.ndarray, pd.Series, list}')
+        return True
 
 
-def _remove_nan(data: list, replace_val: Optional[Union[int, float, str]] = None,
-                keep_nan: Optional[bool] = False) -> list:
-    """Remove or replace nan values"""
-    if replace_val:
-        if replace_val == 'mean':
-            replace_val = native_mean(data=_remove_nan(data=data))
-        elif type(replace_val) in [int, float]:
-            pass
-        else:
-            raise AttributeError('replace_val needs to be an int or float. If "mean" is passed, will use mean.')
-        return [i if i == i and i is not None else replace_val for i in data]
-    if keep_nan is False:
-        return [i for i in data if i == i and i is not None]
-    else:
-        return [i if i == i and i is not None else None for i in data]
+def _remove_nan(data: list) -> list:
+    """Remove Nan values from a list"""
+    return [val for val in data if _check_na(val) is True]
 
 
-def _to_type(data: Union[list, np.float64, np.float32, np.float16, np.float_, np.int64, np.int32, np.int16, np.int8,
-                         np.int_, float, int], new_type: str) -> Union[List[int], List[float], int, float]:
-    """Converts objects to a set item"""
-    if new_type == 'int':
-        if type(data) == list:
-            return [int(i) for i in data]
-        else:
-            return int(data)
-    elif new_type == 'float':
-        if type(data) == list:
-            return [float(i) for i in data]
-        else:
-            return float(data)
-    else:
-        raise AttributeError('new_type can be "int" or "float.')
-
-
-def normalize(data: Union[list, np.ndarray, pd.Series], keep_nan: Optional[Union[bool, int, float]] = False) -> list:
+def _round_to(data: Union[list, pd.Series, np.ndarray, float, int], val: float, remainder: bool = False) -> Union[list, float]:
     """
+    Rounds a value or list.
 
-    Normalize a list between 0 and 1.
-
-    :param data: Input data to normalize.
-    :type data: list, np.ndarray, or pd.Series
-    :param keep_nan: If True, will maintain nan values, default is False. *Optional*
-    :type keep_nan: bool
-    :return: Normalized list.
-    :rtype: list
-    :example: *None*
-    :note: If an int or float is passed for keep_nan, that value will be placed where nan's are present.
-
+    :param data: Value or list.
+    :param val: Place to round to.
+    :param remainder: Whether to use remainder. If using floats, this should be true.
+    # :param val_type: Desired value type.
+    # :type val_type: str.
+    :return: Returns a value or list of values.
+    :note: *None*
     """
-    temp_data = _remove_nan(data=_to_list(data=data))
-    max_val, min_val = max(temp_data), min(temp_data)
-    max_min_val = max_val - min_val
-    if max_min_val == 0:
-        max_min_val = 1
-    if keep_nan is False:
-        return [(item - min_val) / max_min_val for item in temp_data]
-    elif type(keep_nan) in [float, int]:
-        data = _remove_nan(data=data, replace_val=keep_nan)
-        return [(item - min_val) / max_min_val for item in data]
-    else:
-        return [(item - min_val) / max_min_val if item == item and item is not None else np.nan for item in data]
-
-
-def standardize(data: Union[list, np.ndarray, pd.Series], keep_nan: Optional[Union[bool, int, float]] = False) -> list:
-    """
-
-    Standardize a list with a mean of zero and std of 1.
-
-    :param data: Input data to standardize.
-    :type data: list, np.ndarray, or pd.Series
-    :param keep_nan: If True, will maintain nan values, default is False. *Optional*
-    :type keep_nan: bool
-    :return: Standardized list.
-    :rtype: list
-    :example: *None*
-    :note: If an int or float is passed for keep_nan, that value will be placed where nan's are present.
-
-    """
-    temp_data = _remove_nan(data=_to_list(data=data))
-    mu, std = native_mean(data=temp_data), native_std(data=temp_data, ddof=1)
-    if std != 0:
-        if keep_nan is False:
-            return [(item - mu) / std for item in temp_data]
-        elif type(keep_nan) in [float, int]:
-            data = _remove_nan(data=data, replace_val=keep_nan)
-            return [(item - mu) / std for item in data]
+    with type(data) as datatype:
+        if datatype not in {list: True, pd.Series: True, np.ndarray: True}:
+            if remainder is True:
+                return round(_to_type(value=data, value_type='float') * val) / val
+            else:
+                return round(_to_type(value=data, value_type='float') / val) * val
+        elif datatype in {float: True, int: True}:
+            data = (_to_type(value=i, value_type='float') for i in data)
+            if remainder is True:
+                return [round(item * val) / val for item in data]
+            else:
+                return [round(item / val) * val for item in data]
         else:
-            return [(item - mu) / std if item == item and item is not None else np.nan for item in data]
-    else:
-        if keep_nan is False:
-            return [0] * len(temp_data)
-        elif type(keep_nan) in [float, int]:
-            return [0] * len(data)
-        else:
-            return [0] * len(temp_data)
+            raise AttributeError('Value not one of the specified types.')
 
 
-def running_mean(data: Union[list, np.ndarray, pd.Series], num: int) -> List[float]:
+def _unique_values(data: list) -> list:
     """
-
-    Calculate the Running Mean on *num* interval.
+    Finds unique values from a list.
 
     :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param num: Input val used for running mean.
-    :type num: int
-    :return: Running mean for a given  np.ndarray, pd.Series, or list.
-    :rtype: List[float]
-    :example: *None*
-    :note: None and np.nan values are replaced with the mean value.
-
+    :type data: list.
+    :return: Returns either a list or dict.
+    :note: *None*
     """
-    data = _remove_nan(data=_to_list(data=data), replace_val='mean')
-    pre, ran = [native_mean(data=data[:num])] * num, range(num, len(data))
-    return pre + [native_mean(data=data[i - num:i]) for i in ran]
+    return _check_type(data=set(data), value_type='float')
 
 
-def running_std(data: Union[list, np.ndarray, pd.Series], num: int) -> List[float]:
-    """
-
-    Calculate the Running Std on *num* interval.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param num: Input val used for Running Std window.
-    :type num: int
-    :return: Running std for a given  np.ndarray, pd.Series, or list.
-    :rtype: List[float]
-    :example: *None*
-    :note: None and np.nan values are replaced with the mean value.
-
-    """
-    data = _remove_nan(data=_to_list(data=data), replace_val='mean')
-    pre, ran = [native_std(data=data[:num])] * num, range(num, len(data))
-    return pre + [native_std(data=data[i - num:i]) for i in ran]
-
-
-def running_median(data: Union[list, np.ndarray, pd.Series], num: int) -> List[float]:
-    """
-
-    Calculate the Running Median on *num* interval.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param num: Input val used for Running median window.
-    :type num: int
-    :return: list.
-    :rtype: List[float]
-    :example: *None*
-    :note: None and np.nan values are replaced with the mean value.
-
-    """
-    data = _remove_nan(data=_to_list(data=data), replace_val='mean')
-    pre, ran = [native_median(data=data[:num])] * num, range(num, len(data))
-    return pre + [native_median(data=data[i - num:i]) for i in ran]
-
-
-def running_percentile(data: Union[list, np.ndarray, pd.Series], num: int, q: float) -> List[float]:
-    """
-
-    Calculate the Running Percentile on *num* interval.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param num: Input val used for Running Percentile window.
-    :type num: int
-    :param q: Percent of data.
-    :type q: float
-    :return: Running percentile for a given  np.ndarray, pd.Series, or list.
-    :rtype: List[float]
-    :example: *None*
-    :note: None and np.nan values are replaced with the mean value.
-
-    """
-    data = _remove_nan(data=_to_list(data=data), keep_nan=True)
-    pre, ran = [native_percentile(data=data[:num], q=q)] * num, range(num, len(data))
-    return pre + [native_percentile(data=data[i - num:i], q=q) for i in ran]
-
-
-def cumulative_mean(data: Union[list, np.ndarray, pd.Series]) -> List[float]:
-    """
-
-    Calculate the Cumulative Mean.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Cumulative mean for a given np.ndarray, pd.Series, or list.
-    :rtype: List[float]
-    :example: *None*
-    :note: None and np.nan values are replaced with the mean value.
-
-    """
-    data = _remove_nan(data=_to_list(data=data), replace_val='mean')
-    ran = range(1, len(data))
-    return [0.0] + [native_mean(data=data[:i]) for i in ran]
-
-
-def round_to(data: Union[list, np.ndarray, pd.Series, np.float64, np.float32, np.float16, np.float_, np.int64, np.int32,
-                         np.int16, np.int8, np.int_, float, int], val: Union[int, float],
-             remainder: Optional[bool] = False) -> Union[List[float], float]:
-    """
-
-    Rounds an np.array, pd.Series, or list of values to the nearest value.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, pd.Series, int, float, or any of the numpy int/float variations
-    :param val: Value to round to. If decimal, will be that number divided by.
-    :type val: int
-    :param remainder: If True, will round the decimal, default is False. *Optional*
-    :type remainder: bool
-    :return: Rounded number.
-    :rtype: List[float] or float
-    :example:
-        >>> # With remainder set to True.
-        >>> lst = [4.3, 5.6]
-        >>> round_to(data=lst, val=4, remainder=True) # [4.25, 5.5]
-        >>>
-        >>>  # With remainder set to False.
-        >>> lst = [4.3, 5.6]
-        >>> round_to(data=lst, val=4, remainder=False) # [4, 4]
-        >>>
-    :note: Single int or float values can be passed.
-
-    """
-    if type(val) == int:
-        val = float(val)
-
-    if type(data) not in [list, pd.Series, np.ndarray]:
-        data = _to_type(data=data, new_type='float')
-        if remainder is True:
-            return round(data * val) / val
-        else:
-            return round(data / val) * val
-    else:
-        data = _to_type(data=_remove_nan(data=_to_list(data=data), replace_val=0), new_type='float')
-        if remainder is True:
-            return [round(item * val) / val for item in data]
-        else:
-            return [round(item / val) * val for item in data]
-
-
-def calc_gini(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate the Gini Coef for a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Gini value.
-    :rtype: float
-    :example:
-        >>> lst = [4.3, 5.6]
-        >>> calc_gini(data=lst, val=4, remainder=True) # 0.05445544554455435
-    :note: The larger the gini coef, the more consolidated the chips on the table are to one person.
-
-    """
-    data = _to_list(data=data)
-    sorted_list = sorted(data)
-    height, area = 0, 0
-    for value in sorted_list:
-        height += value
-        area += height - value / 2.
-    fair_area = height * len(data) / 2.
-    return (fair_area - area) / fair_area
-
-
-def search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, float, int]:
+def _search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, float, int]:
     """
 
     Searches a dict using the values.
@@ -311,380 +143,281 @@ def search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, flo
     return list(dic.keys())[list(dic.values()).index(item)]
 
 
-def flatten(data: list, type_used: str = 'str') -> list:
+# Internal Math Functions
+def _max(data: list) -> float:
     """
-
-    Flattens a list and checks the list.
+    Find the max value of a list.
 
     :param data: Input data.
-    :type data: list
-    :param type_used: Type to search for, default is "str". *Optional*
-    :type type_used: str
-    :param type_used: Either {str, int, or float}
-    :type type_used: str
-    :return: Returns a flattened list.
-    :rtype: list
-    :example: *None*
-    :note: Will work when lists are mixed with non-list items.
-
-    """
-    new_type = {'str': [str], 'int': [int], 'float': [float], 'class objects': class_object_lst}[type_used]
-    lst = [item1 for item1 in data if type(item1) in new_type or item1 is None]
-    missed = [item1 for item1 in data if type(item1) not in new_type and item1 is not None]
-    temp_lst = [item2 for item1 in missed for item2 in item1]
-    return lst + temp_lst
-
-
-def native_mode(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Mode of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the Mode.
-    :rtype: float
-    :example: *None*
+    :type data: list.
+    :return: Maximum value.
     :note: *None*
-
     """
-    count_dic = unique_values(data=_remove_nan(data=_to_list(data=data)), count=True)
+    with len(data) as length:
+        if length > 1:
+            return _to_type(value=max(data), value_type='float')
+        elif length == 0:
+            return 0.0
+        else:
+            return _to_type(value=data, value_type='float')
+
+
+def _min(data: list) -> float:
+    """
+    Find the min value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Minimum value.
+    :note: *None*
+    """
+    with len(data) as length:
+        if length > 1:
+            return _to_type(value=min(data), value_type='float')
+        elif length == 0:
+            return 0.0
+        else:
+            return _to_type(value=data, value_type='float')
+
+
+def _mean(data: list) -> float:
+    """
+    Find the mean value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Mean value.
+    :rtype: float.
+    :note: *None*
+    """
+    return sum(data) / len(data)
+
+
+def _variance(data: list, ddof: int = 1) -> float:
+    """
+    Find the variance value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param ddof: Desired Degrees of Freedom.
+    :type ddof: int
+    :return: Variance value.
+    :rtype: float.
+    :note: *None*
+    """
+    mu = _mean(data=data)
+    return sum((x - mu) ** 2 for x in data) / (len(data) - ddof)
+
+
+def _std(data: list, ddof: int = 1) -> float:
+    """
+    Find the Standard Deviation value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param ddof: Desired Degrees of Freedom.
+    :type ddof: int
+    :return: Standard Deviation value.
+    :rtype: float.
+    :note: *None*
+    """
+    return _variance(data=data, ddof=ddof) ** .5
+
+
+def _sum(data: list) -> float:
+    """
+    Find the sum value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Sum value.
+    :note: *None*
+    """
+    with len(data) as length:
+        if length > 1:
+            return _to_type(value=sum(data), value_type='float')
+        elif length == 0:
+            return 0.0
+        else:
+            return _to_type(value=data, value_type='float')
+
+
+def _median(data: list) -> float:
+    """
+    Find the median value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Mean value.
+    :rtype: float.
+    :note: *None*
+    """
+    sorted_lst, lst_len = sorted(data), len(data)
+    index = (lst_len - 1) // 2
+    if lst_len % 2:
+        return _to_type(value=sorted_lst[index], value_type='float')
+    else:
+        return _mean(data=[sorted_lst[index]] + [sorted_lst[index + 1]])
+
+
+def _mode(data: list) -> float:
+    """
+    Find the mode value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Mode value.
+    :rtype: float.
+    :note: *None*
+    """
+    count_dic = _unique_values(data=data, count=True)
     count_dic_values = list(count_dic.values())
     dic_max = max(count_dic_values)
     lst = []
     for i in count_dic_values:
-        val = search_dic_values(dic=count_dic, item=dic_max)
+        val = _search_dic_values(dic=count_dic, item=dic_max)
         lst.append((val, i))
-        del count_dic[val]
+        # del count_dic[val]
         count_dic_values = list(count_dic.values())
 
     first_val, second_val = lst[0][0], lst[0][1]
     equal_lst = [i[0] for i in lst if second_val == i[1]]
     if len(equal_lst) == 1:
-        return float(first_val)
+        return _to_type(value=first_val, value_type='float')
     elif len(equal_lst) % 2 == 0:
-        return native_mean(data=equal_lst)
+        return _mean(data=equal_lst)
     else:
-        return native_median(data=equal_lst)
+        return _median(data=equal_lst)
 
 
-def native_median(data: Union[list, np.ndarray, pd.Series]) -> float:
+def _skew(data: list, length: int) -> float:
     """
-
-    Calculate Median of a list.
+    Find the skew value of a list.
 
     :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the Median.
-    :rtype: float
-    :example: *None*
-    :note: If multiple values have the same count, will return the mean.
-        Median is used if there is an odd number of same count values.
-
-    """
-    data = _to_type(data=_remove_nan(data=_to_list(data=data)), new_type='float')
-    sorted_lst, lst_len = sorted(data), len(data)
-    index = (lst_len - 1) // 2
-    if lst_len % 2:
-        return sorted_lst[index]
-    else:
-        return native_mean(data=[sorted_lst[index]] + [sorted_lst[index + 1]])
-
-
-def native_mean(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Mean of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the mean.
-    :rtype: float
-    :example: *None*
+    :type data: list.
+    :param length: Length of the input data.
+    :type length: int.
+    :return: Skew value.
+    :rtype: float.
     :note: *None*
-
     """
-    data = _remove_nan(data=_to_list(data=data))
-    if len(data) != 0:
-        return sum(data) / len(data)
-    else:
-        return 0.0
+    mu = _mean(data=data)
+    stdn = _std(data=data, ddof=1) ** 3
+    return (((_sum(data=[i - mu for i in data]) ** 3) / length) / stdn) * ((length * (length - 1)) ** .5) / (length - 2)
 
 
-def native_variance(data: Union[list, np.ndarray, pd.Series], ddof: int = 1) -> float:
+def _kurtosis(data: list, length: int) -> float:
     """
-
-    Calculate Variance of a list.
+    Find the kurtosis value of a list.
 
     :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param ddof: Set the degrees of freedom, default is 1. *Optional*
-    :type ddof: int
-    :return: Returns the Variance.
-    :rtype: float
-    :example: *None*
+    :type data: list.
+    :param length: Length of the input data.
+    :type length: int.
+    :return: Kurtosis value.
+    :rtype: float.
     :note: *None*
-
     """
-    data = _remove_nan(data=_to_list(data=data))
-    mu = native_mean(data=data)
-    return sum((x - mu) ** 2 for x in data) / (len(data) - ddof)
+    mu = _mean(data=data)
+    stdn = _std(data=data, ddof=1) ** 4
+    return (((_sum(data=[i - mu for i in data])**4) / length) / stdn) - 3
 
 
-def native_std(data: Union[list, np.ndarray, pd.Series], ddof: Optional[int] = 1) -> float:
+def _percentile(data: list, length: int, q: float, val_type: str = 'float') -> float:
     """
-
-    Calculate Standard Deviation of a list.
+    Find the percentile value of a list.
 
     :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param ddof: Set the degrees of freedom, default is 1. *Optional*
-    :type ddof: int
-    :return: Returns the Standard Deviation.
-    :rtype: float
-    :example: *None*
-    :note: *None*
-
-    """
-    return native_variance(data=_to_list(data=data), ddof=ddof) ** .5
-
-
-def native_sum(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Sum of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the Sum.
-    :rtype: float
-    :example: *None*
-    :note: *None*
-
-    """
-    data = _to_type(data=_remove_nan(data=_to_list(data=data)), new_type='float')
-    if len(data) > 1:
-        return sum(data)
-    elif len(data) == 0:
-        return 0.0
-    else:
-        return data
-
-
-def native_max(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Max of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the max value.
-    :rtype: float
-    :example: *None*
-    :note: *None*
-
-    """
-    data = _to_type(data=_remove_nan(data=_to_list(data=data)), new_type='float')
-
-    if len(data) > 1:
-        largest = 0
-        for i in data:
-            if i > largest:
-                largest = i
-        return largest
-    elif len(data) == 0:
-        return 0.0
-    else:
-        return data
-
-
-def unique_values(data: Union[list, np.ndarray, pd.Series], count: Optional[bool] = None, order: Optional[bool] = None,
-                  indexes: Optional[bool] = None, keep_nan: Optional[bool] = False) -> Union[list, dict]:
-    """
-
-    Get Unique values from a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :param count: Return a dictionary with item and count, default is None. *Optional*
-    :type count: bool
-    :param order: If True will maintain the order, default is None. *Optional*
-    :type order: bool
-    :param indexes: If True will return index of all similar values, default is None. *Optional*
-    :type indexes: bool
-    :param keep_nan: If True will keep np.nan and None values, converting them to None, default is False. *Optional*
-    :type keep_nan: bool
-    :return: Returns either a list of unique values or a dict of unique values with counts.
-    :rtype: Union[list, dict]
-    :example: *None*
-    :note: Ordered may not appear accurate if viewing in IDE.
-
-    """
-    data = _remove_nan(data=_to_list(data=data), keep_nan=keep_nan)
-
-    if order:
-        temp_dic, temp_lst = {}, []
-        for item in data:
-            if item not in temp_dic:
-                temp_dic[item] = True
-                temp_lst.append(item)
-        return temp_lst
-    if count:
-        temp_data = list(set(data))
-        return {i: data.count(i) for i in temp_data}
-    if indexes:
-        temp_dic, ind_dic = {}, {}
-        for ind, item in enumerate(data):
-            if item in temp_dic:
-                ind_dic[item].append(ind)
-            else:
-                temp_dic[item] = True
-                ind_dic[item] = [ind]
-        return ind_dic
-    return list(set(data))
-
-
-def native_skew(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Skew of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the skew value.
-    :rtype: float
-    :example: *None*
-    :note: *None*
-
-    """
-    data = _remove_nan(data=_to_list(data=data), replace_val=0.0)
-    n = len(data)
-    mu = native_mean(data=data)
-    stdn = native_std(data=data, ddof=1)**3
-    nn = ((n * (n-1))**.5) / (n - 2)
-    return (((native_sum(data=[i - mu for i in data])**3) / n) / stdn) * nn
-
-
-def native_kurtosis(data: Union[list, np.ndarray, pd.Series]) -> float:
-    """
-
-    Calculate Kurtosis of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
-    :return: Returns the kurtosis value.
-    :rtype: float
-    :example: *None*
-    :note: *None*
-
-    """
-    data = _remove_nan(data=_to_list(data=data), replace_val=0.0)
-    n = len(data)
-    mu = native_mean(data=data)
-    stdn = native_std(data=data, ddof=1)**4
-    return (((native_sum(data=[i - mu for i in data])**4) / n) / stdn) - 3
-
-
-def native_percentile(data: Union[list, np.ndarray, pd.Series], q: float) -> Union[int, float]:
-    """
-
-    Calculate Percentile of a list.
-
-    :param data: Input data.
-    :type data: list, np.ndarray, or pd.Series
+    :type data: list.
+    :param length: Length of the input data.
+    :type length: int.
     :param q: Percentile percent.
-    :type q: float
-    :return: Returns the percentile value.
-    :rtype: float
-    :example: *None*
-    :note: If input values are floats, will return float values.
-
+    :type q: float.
+    :param val_type: Desired type.
+    :type val_type: str.
+    :return: Percentile value.
+    :note: *None*
     """
-    data = _remove_nan(data=_to_list(data=data))
-    if len(data) == 0:
-        return 0
-    data_type = False
-    if type(data[0]) == float:
-        data_type = True
-        data = [item * 1000 for item in data]
-    data = round_to(data=data, val=1)
-    ind = round_to(data=len(data) * q, val=1)
+    if length == 0:
+        return 0.0
+    data = _round_to(data=[item * 1000.0 for item in data], val=1, val_type=val_type)
+    ind = _round_to(data=length * q, val=1, val_type=val_type)
     data.sort()
     for item in data:
         if item >= ind:
-            break
-    if data_type:
-        return item / 1000
+            return _to_type(value=item / 1000.0, value_type='float')
+
+
+def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], val_type: str = 'float'):
+    """
+    Calculate various percentiles for a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param length: Length of input data.
+    :type length: int.
+    :param q_lst: Desired percentile percents.
+    :type q_lst: List of floats.
+    :param val_type: Desired type.
+    :type val_type: str.
+    :return: A group of stats.
+    :note: *None*
+    """
+    return (_percentile(data=data, length=length, q=q, val_type=val_type) for q in q_lst)
+
+
+def _replacement_value(data: list, na_handling: str = 'median', std_value: int = 3, cap_zero: bool = True,
+                       median_value: float = 0.023, ddof: int = 1) -> float:
+    """
+    Calculate desired replacement for Nan values.
+
+    :param data: Input data.
+    :type data: list.
+    :param na_handling: Desired Nan value handling method. {zero, mu, std, median}
+    :type na_handling: str.
+    :param std_val: Desired Standard Deviation to use.
+    :type std_val: int.
+    :param cap_zero: Whether to cap the value at zero.
+    :type cap_zero: bool.
+    :param median_val: Desired percentile to use.
+    :type median_val: float.
+    :return: Replacement value.
+    :note: If mean - 3 * std is less than 0, may confuse results.
+    """
+    if na_handling == 'zero':
+        return 0.0
+    elif na_handling == 'mu':
+        return _mean(data=_remove_nan(data=data))
+    elif na_handling == 'std':
+        data_new = _remove_nan(data=data)
+        val = _mean(data=data_new) - (_std(data=data_new, ddof=ddof) * std_value)
+        if cap_zero:
+            if val > 0:
+                return val
+            else:
+                return 0
+        else:
+            return val
+    elif na_handling == 'median':
+        return _percentile(data=data, length=len(data), q=median_value, val_type='float')
+    elif na_handling == 'none':
+        return None
+
+
+def _replace_na(data: list, replacement_value: Optional[float] = None) -> list:
+    """Replace Nan values with replacement value"""
+
+    if replacement_value is None:
+        return _remove_nan(data=data)
     else:
-        return item
+        return [val if _check_na(value=val) is True else replacement_value for val in data]
 
 
-# def calculate_hand(cards: Union[tuple, list]) -> str:
-#
-#     card_lst = []
-#     for card in cards:
-#         if 'J' in card:
-#             card_lst.append(card.replace('J', '11'))
-#         elif 'Q' in card:
-#             card_lst.append(card.replace('Q', '12'))
-#         elif 'K' in card:
-#             card_lst.append(card.replace('K', '13'))
-#         elif 'A' in card:
-#             card_lst.append(card.replace('A' '14'))
-#         else:
-#             card_lst.append(card)
-#
-#     card_lst_num = [int(card.split(' ')[0]) for card in card_lst]
-#     card_lst_suit = [card.split(' ')[1] for card in card_lst]
-#
-#     def find_pair(cards: List[int]) -> bool:
-#         for card in cards:
-#             if cards.count(card) == 2:
-#                 return True
-#         return False
-#
-#     def find_two_pair(cards: List[int]) -> bool:
-#         pair = 0
-#         for card in cards:
-#             if cards.count(card) == 2:
-#                 pair += 1
-#         if pair == 2:
-#             return True
-#         return False
-#
-#     def find_three_of_a_kind(cards: List[int]) -> bool:
-#         for card in cards:
-#             if cards.count(card) == 3:
-#                 return True
-#         return False
-#
-#     def find_full_house(cards: List[int]) -> bool:
-#         three, two = False, False
-#         for card in cards:
-#             if cards.count(card) == 3:
-#                 three = True
-#             elif cards.count(card) == 2:
-#                 two = True
-#
-#         if three is True and two is True:
-#             return True
-#         else:
-#             return False
-#
-#     def find_four_of_a_kind(cards: List[int]) -> bool:
-#         for card in cards:
-#             if cards.count(card) == 4:
-#                 return True
-#         return False
-#
-#     def find_flush(cards: List[str]) -> bool:
-#         for card in cards:
-#             if cards.count(card) == 5:
-#                 return True
-#         return False
-#
-#     def find_straight(cards: List[int]) -> bool:
-#         values = sorted(cards, reverse=True)
-#         return values == list(range(values[0], values[0] - 5, -1))
-#
-#     return
+def _prep(data, value_type: str = 'float', na_handling: str = 'median', std_value: int = 3, median_value: float = 0.023,
+          cap_zero: bool = True, ddof: int = 1):
+    with _check_type(data=_check_list(data=data), value_type=value_type) as data_lst:
+        na_value = _replacement_value(data=data_lst, na_handling=na_handling, std_value=std_value,
+                                      median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+        return _replace_na(data=data_lst, replacement_value=na_value)
+
