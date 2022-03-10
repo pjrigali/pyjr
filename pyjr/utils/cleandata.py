@@ -2,7 +2,7 @@
 CleanData class.
 
 Usage:
- ./utils/data.py
+ ./utils/cleandata.py
 
 Author:
  Peter Rigali - 2022-03-10
