@@ -1,7 +1,8 @@
-"""Various outlier detection functions.
+"""
+Various outlier detection functions.
 
 Usage:
- ./outlier.py
+ ./outlier/outlier.py
 
 Author:
  Peter Rigali - 2021-08-30

@@ -1,7 +1,8 @@
-"""Regression class object.
+"""
+Regression class object.
 
 Usage:
- ./regression.py
+ ./models/regression.py
 
 Author:
  Peter Rigali - 2021-08-30

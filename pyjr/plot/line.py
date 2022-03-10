@@ -1,8 +1,8 @@
 """
-Histogram plot class.
+Line plot class.
 
 Usage:
- ./plot/histogram.py
+ ./plot/line.py
 
 Author:
  Peter Rigali - 2022-03-10

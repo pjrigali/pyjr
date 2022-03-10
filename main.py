@@ -1,3 +1,13 @@
+"""
+Main file.
+
+Usage:
+ None
+
+Author:
+ Peter Rigali - 2022-03-10
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

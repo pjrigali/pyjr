@@ -1,3 +1,12 @@
+"""
+Time Series class.
+
+Usage:
+ ./utils/timeseries.py
+
+Author:
+ Peter Rigali - 2022-03-10
+"""
 from dataclasses import dataclass
 from typing import List, Union, Optional, Dict
 import datetime
