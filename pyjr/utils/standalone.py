@@ -7,10 +7,14 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
+import pandas as pd
+import numpy as np
 from typing import Union
-from base import _prep, _prep_args, _unique_values, _to_list, _search_dic_values, _to_type, _max
-from args import native_mean_args, native_median_args, native_variance_args, native_std_args, native_sum_args
-
+from pyjr.utils.base import _prep, _unique_values, _to_list, _search_dic_values, _to_type, _max, _check_type, _round_to
+from pyjr.utils.base import _min
+from pyjr.utils.args import native_mean_args, native_median_args, native_variance_args, native_std_args, native_sum_args
+from pyjr.utils.args import _prep_args
+from pyjr.utils.input import Args
 
 # def flatten(data: list, type_used: str = 'str') -> list:
 #     """
@@ -57,29 +61,28 @@ def unique_values(data: Union[list, np.ndarray, pd.Series],
     :return: Returns either a list or dict.
     :note: *None*
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        if order:
-            temp_dic, temp_lst = {}, []
-            for item in data:
-                if item not in temp_dic:
-                    temp_dic[item] = True
-                    temp_lst.append(item)
-            return temp_lst
-        if count:
-            return {i: data.count(i) for i in set(data)}
-        if indexes:
-            temp_dic, ind_dic = {}, {}
-            for ind, item in enumerate(data):
-                if item in temp_dic:
-                    ind_dic[item].append(ind)
-                else:
-                    temp_dic[item] = True
-                    ind_dic[item] = [ind]
-            return ind_dic
-        return _to_list(data=set(data))
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default)).data
+    if order:
+        temp_dic, temp_lst = {}, []
+        for item in new_data:
+            if item not in temp_dic:
+                temp_dic[item] = True
+                temp_lst.append(item)
+        return temp_lst
+    if count:
+        return {i: new_data.count(i) for i in set(new_data)}
+    if indexes:
+        temp_dic, ind_dic = {}, {}
+        for ind, item in enumerate(new_data):
+            if item in temp_dic:
+                ind_dic[item].append(ind)
+            else:
+                temp_dic[item] = True
+                ind_dic[item] = [ind]
+        return ind_dic
+    return _to_list(data=set(new_data))
 
 
 def native_mode(data: Union[list, np.ndarray, pd.Series],
@@ -100,32 +103,33 @@ def native_mode(data: Union[list, np.ndarray, pd.Series],
     :example: *None*
     :note: *None*
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        count_dic = unique_values(data=data, count=True)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    count_dic = unique_values(data=new_data.data, count=True)
+    count_dic_values = _to_list(data=count_dic.values())
+    lst, dic_max = [], _max(count_dic_values)
+    for i in count_dic_values:
+        lst.append((_search_dic_values(dic=count_dic, item=dic_max), i))
         count_dic_values = _to_list(data=count_dic.values())
-        lst, dic_max = [], _max(count_dic_values)
-        for i in count_dic_values:
-            lst.append((_search_dic_values(dic=count_dic, item=dic_max), i))
-            count_dic_values = _to_list(data=count_dic.values())
-            continue
-            # val = search_dic_values(dic=count_dic, item=dic_max)
-            # lst.append((val, i))
-            # del count_dic[val]
-            # count_dic_values = _to_list(data=count_dic.values())
+        continue
+        # val = _search_dic_values(dic=count_dic, item=dic_max)
+        # lst.append((val, i))
+        # # del count_dic[val]
+        # count_dic_values = _to_list(data=count_dic.values())
 
-        first_val, second_val = lst[0][0], lst[0][1]
-        with [i[0] for i in lst if second_val == i[1]] as equal_lst:
-            new_args = (equal_lst, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-            with len(equal_lst) as lst_len:
-                if lst_len == 1:
-                    return float(first_val)
-                elif lst_len % 2 == 0:
-                    return native_mean_args(args=new_args)
-                else:
-                    return native_median(data=equal_lst, value_type=value_type)
+    first_val, second_val = lst[0][0], lst[0][1]
+    equal_lst = [i[0] for i in lst if second_val == i[1]]
+    new_args = (equal_lst, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    lst_len = len(equal_lst)
+    if lst_len == 1:
+        return float(first_val)
+    elif lst_len % 2 == 0:
+        return native_mean_args(args=new_args)
+    else:
+        return native_median(data=equal_lst, value_type=value_type)
 
 
 def native_median(data: Union[list, np.ndarray, pd.Series],
@@ -148,19 +152,19 @@ def native_median(data: Union[list, np.ndarray, pd.Series],
         Median is used if there is an odd number of same count values.
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        with sorted(data) as sorted_lst:
-            with len(data) as lst_len:
-                with (lst_len - 1) // 2 as index:
-                    if lst_len % 2:
-                        return _to_type(value=sorted_lst[index], value_type=value_type)
-                    else:
-                        new_data = [sorted_lst[index]] + [sorted_lst[index + 1]]
-                        new_args = (new_data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-                        return native_mean_args(args=args)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    sorted_lst = sorted(new_data.data)
+    index = (new_data.len - 1) // 2
+    if new_data.len % 2:
+        return _to_type(value=sorted_lst[index], value_type=value_type)
+    else:
+        temp_data = [sorted_lst[index]] + [sorted_lst[index + 1]]
+        new_args = (temp_data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+        return native_mean_args(args=args)
 
 
 def native_mean(data: Union[list, np.ndarray, pd.Series],
@@ -182,15 +186,15 @@ def native_mean(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len != 0:
-                return _to_type(value=sum(data) / lst_len, value_type=value_type)
-            else:
-                return _to_type(value=0.0, value_type=value_type)
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    if new_data.len != 0:
+        return _to_type(value=new_data.sum / new_data.len, value_type=value_type)
+    else:
+        return _to_type(value=0.0, value_type=value_type)
 
 
 def native_variance(data: Union[list, np.ndarray, pd.Series],
@@ -214,13 +218,14 @@ def native_variance(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        new_args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-        with native_mean_args(args=new_args) as mu:
-            return _to_type(value=sum((x - mu) ** 2 for x in data) / (len(data) - ddof), value_type=value_type)
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    new_args = (new_data.data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    mu = native_mean_args(args=new_args)
+    return _to_type(value=sum((x - mu) ** 2 for x in new_data) / (new_data.len - ddof), value_type=value_type)
 
 
 def native_std(data: Union[list, np.ndarray, pd.Series],
@@ -244,9 +249,12 @@ def native_std(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-                 median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default)).data
+    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
+    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+    args = (new_data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
     return native_variance_args(args=args) ** .5
 
 
@@ -269,17 +277,17 @@ def native_sum(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len > 1:
-                return sum(data)
-            elif lst_len == 0:
-                return 0.0
-            else:
-                return data
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # data = _prep_args(args=args)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    if new_data.len > 1:
+        return new_data.sum
+    elif new_data.len == 0:
+        return 0.0
+    else:
+        return new_data
 
 
 def native_max(data: Union[list, np.ndarray, pd.Series],
@@ -301,21 +309,17 @@ def native_max(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len > 1:
-                largest = 0.0
-                for i in data:
-                    if i > largest:
-                        largest = i
-                return largest
-            elif lst_len == 0:
-                return 0.0
-            else:
-                return data
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    if new_data.len > 1:
+        return new_data.max
+    elif new_data.len == 0:
+        return 0.0
+    else:
+        return data
 
 
 def native_min(data: Union[list, np.ndarray, pd.Series],
@@ -337,66 +341,17 @@ def native_min(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    # data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
-    #              median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        with len(data) as lst_len:
-            if lst_len > 1:
-                smallest = 0.0
-                for i in data:
-                    if i < smallest:
-                        smallest = i
-                return smallest
-            elif lst_len == 0:
-                return 0.0
-            else:
-                return data
-
-# def unique_values(data: Union[list, np.ndarray, pd.Series], count: Optional[bool] = None, order: Optional[bool] = None,
-#                   indexes: Optional[bool] = None, keep_nan: Optional[bool] = False) -> Union[list, dict]:
-#     """
-#
-#     Get Unique values from a list.
-#
-#     :param data: Input data.
-#     :type data: list, np.ndarray, or pd.Series
-#     :param count: Return a dictionary with item and count, default is None. *Optional*
-#     :type count: bool
-#     :param order: If True will maintain the order, default is None. *Optional*
-#     :type order: bool
-#     :param indexes: If True will return index of all similar values, default is None. *Optional*
-#     :type indexes: bool
-#     :param keep_nan: If True will keep np.nan and None values, converting them to None, default is False. *Optional*
-#     :type keep_nan: bool
-#     :return: Returns either a list of unique values or a dict of unique values with counts.
-#     :rtype: Union[list, dict]
-#     :example: *None*
-#     :note: Ordered may not appear accurate if viewing in IDE.
-#
-#     """
-#     data = _remove_nan(data=_to_list(data=data), keep_nan=keep_nan)
-#
-#     if order:
-#         temp_dic, temp_lst = {}, []
-#         for item in data:
-#             if item not in temp_dic:
-#                 temp_dic[item] = True
-#                 temp_lst.append(item)
-#         return temp_lst
-#     if count:
-#         temp_data = list(set(data))
-#         return {i: data.count(i) for i in temp_data}
-#     if indexes:
-#         temp_dic, ind_dic = {}, {}
-#         for ind, item in enumerate(data):
-#             if item in temp_dic:
-#                 ind_dic[item].append(ind)
-#             else:
-#                 temp_dic[item] = True
-#                 ind_dic[item] = [ind]
-#         return ind_dic
-#     return list(set(data))
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    if new_data.len > 1:
+        return new_data.min
+    elif new_data.len == 0:
+        return 0.0
+    else:
+        return data
 
 
 def native_skew(data: Union[list, np.ndarray, pd.Series],
@@ -418,13 +373,15 @@ def native_skew(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        temp_args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-        with len(data) as n:
-            mu, stdn = native_mean_args(args=temp_args), native_std_args(args=temp_args) ** 3
-            new_args = ([i - mu for i in data], value_type, na_handling, std_value, median_value, cap_zero, ddof)
-            return (((native_sum_args(args=new_args) ** 3) / n) / stdn) * ((n * (n-1))**.5) / (n - 2)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    temp_args = (new_data.data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    mu, stdn = native_mean_args(args=temp_args), native_std_args(args=temp_args) ** 3
+    new_args = ([i - mu for i in new_data.data], value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    return (((native_sum_args(args=new_args) ** 3) / new_data.len) / stdn) * ((new_data.len * (new_data.len - 1)) ** .5) / (new_data.len - 2)
 
 
 def native_kurtosis(data: Union[list, np.ndarray, pd.Series],
@@ -446,12 +403,15 @@ def native_kurtosis(data: Union[list, np.ndarray, pd.Series],
     :note: *None*
 
     """
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        temp_args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-        mu, stdn = native_mean_args(args=temp_args), native_std_args(args=args) ** 4
-        new_args = ([i - mu for i in data], value_type, na_handling, std_value, median_value, cap_zero, ddof)
-        return (((native_sum_args(args=new_args) ** 4) / len(data)) / stdn) - 3
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # data = _prep_args(args=args)
+    temp_args = (new_data.data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    mu, stdn = native_mean_args(args=temp_args), native_std_args(args=args) ** 4
+    new_args = ([i - mu for i in new_data.data], value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    return (((native_sum_args(args=new_args) ** 4) / new_data.len) / stdn) - 3
 
 
 def native_percentile(data: Union[list, np.ndarray, pd.Series],
@@ -476,24 +436,27 @@ def native_percentile(data: Union[list, np.ndarray, pd.Series],
     :note: If input values are floats, will return float values.
 
     """
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        if len(data) == 0:
-            return 0
-        data_type = False
-        if type(data[0]) == float:
-            data_type = True
-            data = [item * 1000 for item in data]
-        data = round_to(data=data, val=1)
-        ind = round_to(data=len(data) * q, val=1)
-        data.sort()
-        for item in data:
-            if item >= ind:
-                break
-        if data_type:
-            return item / 1000
-        else:
-            return item
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    if new_data.len == 0:
+        return 0
+    data_type = False
+    if type(new_data.data[0]) == float:
+        data_type = True
+        temp_data = [item * 1000 for item in new_data.data]
+    temp_data = _round_to(data=temp_data, val=1)
+    ind = _round_to(data=new_data.len * q, val=1)
+    temp_data.sort()
+    for item in temp_data:
+        if item >= ind:
+            break
+    if data_type:
+        return item / 1000
+    else:
+        return item
 
 
 def calc_gini(data: Union[list, np.ndarray, pd.Series],
@@ -515,14 +478,16 @@ def calc_gini(data: Union[list, np.ndarray, pd.Series],
         >>> lst = [4.3, 5.6]
         >>> calc_gini(data=lst, val=4, remainder=True) # 0.05445544554455435
     :note: The larger the gini coef, the more consolidated the chips on the table are to one person.
-
     """
-    args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        sorted_list = sorted(data)
-        height, area = 0.0, 0.0
-        for value in sorted_list:
-            height += value
-            area += height - value / 2.0
-        fair_area = height * len(data) / 2.0
-        return _to_type(value=(fair_area - area) / fair_area, value_type=value_type)
+    default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
+               'cap_zero': True, 'ddof': 1}
+    new_data = Args(args=(locals(), default))
+    # args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
+    # new_data = _prep_args(args=args)
+    sorted_list = sorted(new_data.data)
+    height, area = 0.0, 0.0
+    for value in sorted_list:
+        height += value
+        area += height - value / 2.0
+    fair_area = height * new_data.len / 2.0
+    return _to_type(value=(fair_area - area) / fair_area, value_type=value_type)
