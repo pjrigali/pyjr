@@ -12,6 +12,8 @@ from dataclasses import dataclass
 import numpy as np
 from statsmodels import regression
 from statsmodels.tools import add_constant
+from pyjr.utils.cleandata import CleanData
+from pyjr.utils.base import _check_list
 
 
 @dataclass
@@ -30,46 +32,34 @@ class Regression:
     :note: This will return a Regression object with regression result information.
 
     """
-    doc_filter: DocumentFilter
-    x_column: Union[str, List[str]]
-    y_column: str
+    x_data: CleanData
+    y_data: CleanData
 
-    def __init__(self, doc_filter, x_column, y_column):
+    def __init__(self, x_data, y_data):
 
-        if type(x_column) == str:
-            x = add_constant(np.array(doc_filter.df[x_column], dtype=float))
-        else:
-            x = np.array(doc_filter.df[x_column], dtype=float)
+        if x_data.len != y_data.len:
+            raise AttributeError('X and Y data are not the same length.')
 
-        y = np.array(doc_filter.df[y_column])
+        x = add_constant(np.array(x_data.data, dtype=float))
+        y = np.array(y_data.data)
         model = regression.linear_model.OLS(y, x).fit()
 
-        if type(x_column) == str:
-            self._constant_coef = model.params[0]
-            self._item_coef = model.params[1]
-            self._coefficients = None
-            self._confidence_bounds = None
-            self._lower_conf = model.conf_int()[1, :2][0]
-            self._upper_conf = model.conf_int()[1, :2][1]
-            self._pvalue = model.pvalues[1]
-        else:
-            self._constant_coef = None
-            self._item_coef = None
-            self._coefficients = model.params
-            self._confidence_bounds = model.conf_int()
-            self._lower_conf = None
-            self._upper_conf = None
-            self._pvalue = model.pvalues
-
+        self._constant_coef = model.params[0]
+        self._item_coef = model.params[1]
+        # self._coefficients = None
+        # self._confidence_bounds = None
+        self._lower_conf = model.conf_int()[1, :2][0]
+        self._upper_conf = model.conf_int()[1, :2][1]
+        self._pvalue = model.pvalues[1]
         self._r2 = model.rsquared
-        self._resid = model.resid
+        self._resid = _check_list(data=model.resid)
         self._bse = model.bse
         self._mse = model.mse_model
         self._ssr = model.ssr
         self._ess = model.ess
 
     def __repr__(self):
-        return str(self._r2)
+        return 'Regression Analysis'
 
     @property
     def r2(self):
@@ -121,12 +111,12 @@ class Regression:
         """Returns Sum of Squared Error"""
         return self._ess
 
-    @property
-    def confidence(self):
-        """Returns Confidence Values, if more than one x_column is provided"""
-        return self._coefficients
-
-    @property
-    def coefficients(self):
-        """Returns Coefficient Values, if more than one x_column is provided"""
-        return self._confidence_bounds
+    # @property
+    # def confidence(self):
+    #     """Returns Confidence Values, if more than one x_column is provided"""
+    #     return self._coefficients
+    #
+    # @property
+    # def coefficients(self):
+    #     """Returns Coefficient Values, if more than one x_column is provided"""
+    #     return self._confidence_bounds
