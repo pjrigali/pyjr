@@ -7,8 +7,12 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
-from base import _prep_args, _check_type
-from base import _min, _max, _mean, _std, _median, _percentile
+from typing import Union
+import pandas as pd
+import numpy as np
+from pyjr.utils.base import  _check_type
+from pyjr.utils.base import _min, _max, _mean, _std, _median, _percentile
+from pyjr.utils.args import _prep_args
 
 
 def normalize(data: Union[list, np.ndarray, pd.Series],
@@ -33,12 +37,12 @@ def normalize(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        max_val, min_val = _max(data), _min(data)
-        max_min_val = max_val - min_val
-        if max_min_val == 0.0:
-            max_min_val = 1.0
-        return _check_type(data=[(val - min_val) / max_min_val for val in temp_data], value_type=value_type)
+    data = _prep_args(args=args)
+    max_val, min_val = _max(data), _min(data)
+    max_min_val = max_val - min_val
+    if max_min_val == 0.0:
+        max_min_val = 1.0
+    return _check_type(data=[(val - min_val) / max_min_val for val in temp_data], value_type=value_type)
 
 
 def standardize(data: Union[list, np.ndarray, pd.Series],
@@ -63,12 +67,12 @@ def standardize(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        mu = _mean(data=temp_data)
-        if _std(data=temp_data, ddof=1) != 0:
-            return _check_type(data=[(item - mu) / std for item in data], value_type=value_type)
-        else:
-            return _check_type(data=[0] * len(data), value_type=value_type)
+    data = _prep_args(args=args)
+    mu = _mean(data=temp_data)
+    if _std(data=temp_data, ddof=1) != 0:
+        return _check_type(data=[(item - mu) / std for item in data], value_type=value_type)
+    else:
+        return _check_type(data=[0] * len(data), value_type=value_type)
 
 
 def running_mean(data: Union[list, np.ndarray, pd.Series],
@@ -94,9 +98,9 @@ def running_mean(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        pre = ([_mean(data=data[:num])] * num) + [_mean(data=data[i - num:i]) for i in range(num, len(data))]
-        return _check_type(data=pre, value_type=value_type)
+    data = _prep_args(args=args)
+    pre = ([_mean(data=data[:num])] * num) + [_mean(data=data[i - num:i]) for i in range(num, len(data))]
+    return _check_type(data=pre, value_type=value_type)
 
 
 def running_std(data: Union[list, np.ndarray, pd.Series],
@@ -122,8 +126,8 @@ def running_std(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        pre = ([_std(data=data[:num])] * num) + [_std(data=data[i - num:i]) for i in range(num, len(data))]
+    data = _prep_args(args=args)
+    pre = ([_std(data=data[:num])] * num) + [_std(data=data[i - num:i]) for i in range(num, len(data))]
     return _check_type(data=pre, value_type=value_type)
 
 
@@ -150,9 +154,9 @@ def running_median(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        pre = ([_median(data=data[:num])] * num) + [_median(data=data[i - num:i]) for i in  range(num, len(data))]
-        return _check_type(data=pre, value_type=value_type)
+    data = _prep_args(args=args)
+    pre = ([_median(data=data[:num])] * num) + [_median(data=data[i - num:i]) for i in  range(num, len(data))]
+    return _check_type(data=pre, value_type=value_type)
 
 
 def running_percentile(data: Union[list, np.ndarray, pd.Series],
@@ -181,10 +185,10 @@ def running_percentile(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        ran = range(num, len(data))
-        pre = ([_percentile(data=data[:num], q=q)] * num) + [_percentile(data=data[i - num:i], q=q) for i in ran]
-        return _check_type(data=pre, value_type=value_type)
+    data = _prep_args(args=args)
+    ran = range(num, len(data))
+    pre = ([_percentile(data=data[:num], q=q)] * num) + [_percentile(data=data[i - num:i], q=q) for i in ran]
+    return _check_type(data=pre, value_type=value_type)
 
 
 def cumulative_mean(data: Union[list, np.ndarray, pd.Series],
@@ -207,5 +211,5 @@ def cumulative_mean(data: Union[list, np.ndarray, pd.Series],
 
     """
     args = (data, value_type, na_handling, std_value, median_value, cap_zero, ddof)
-    with _prep_args(args=args) as data:
-        return _check_type(data=[0.0] + [_mean(data=data[:i]) for i in range(1, len(data))], value_type=value_type)
+    data = _prep_args(args=args)
+    return _check_type(data=[0.0] + [_mean(data=data[:i]) for i in range(1, len(data))], value_type=value_type)
