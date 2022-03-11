@@ -444,14 +444,14 @@ def native_percentile(data: Union[list, np.ndarray, pd.Series],
     if new_data.len == 0:
         return 0
     data_type = False
-    if type(new_data.data[0]) == float:
+    if value_type == float:
         data_type = True
         temp_data = [item * 1000 for item in new_data.data]
     temp_data = _round_to(data=temp_data, val=1)
     ind = _round_to(data=new_data.len * q, val=1)
     temp_data.sort()
     for item in temp_data:
-        if item >= ind:
+        if item >= temp_data[ind]:
             break
     if data_type:
         return item / 1000

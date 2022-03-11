@@ -362,7 +362,7 @@ def _kurtosis(data: list, length: int) -> float:
     return (((_sum(data=[i - mu for i in data])**4) / length) / stdn) - 3
 
 
-def _percentile(data: list, length: int, q: float, value_type: str = 'float') -> float:
+def _percentile(data: list, q: float, value_type: str = 'float') -> float:
     """
     Find the percentile value of a list.
 
@@ -377,17 +377,17 @@ def _percentile(data: list, length: int, q: float, value_type: str = 'float') ->
     :return: Percentile value.
     :note: *None*
     """
-    if length == 0:
+    if len(data) == 0:
         return 0.0
     data = _round_to(data=[item * 1000.0 for item in data], val=1)
-    ind = _round_to(data=length * q, val=1)
+    ind = _round_to(data=len(data) * q, val=1)
     data.sort()
     for item in data:
         if item >= data[ind]:
             return _to_type(value=item / 1000.0, value_type=value_type)
 
 
-def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], value_type: str = 'float'):
+def _percentiles(data: list, q_lst: list = [0.159, 0.841], value_type: str = 'float'):
     """
     Calculate various percentiles for a list.
 
@@ -402,7 +402,7 @@ def _percentiles(data: list, length: int, q_lst: list = [0.159, 0.841], value_ty
     :return: A group of stats.
     :note: *None*
     """
-    return (_percentile(data=data, length=length, q=q, value_type=value_type) for q in q_lst)
+    return (_percentile(data=data, q=q, value_type=value_type) for q in q_lst)
 
 
 def _replacement_value(data: list, na_handling: str = 'median', std_value: int = 3, cap_zero: bool = True,

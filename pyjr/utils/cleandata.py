@@ -100,7 +100,7 @@ class CleanData:
 
         # self._min, self._max, self._mu, self._var, self._std, self._sum, self._median, self._mode, self._skew, \
         # self._kurt = _stats(data=self._new_data, length=self._len, ddof=self._ddof)
-        self._lower, self._higher = _percentiles(data=self._new_data, length=self._len, q_lst=q_lst, value_type=value_type)
+        self._lower, self._higher = _percentiles(data=self._new_data, q_lst=q_lst, value_type=value_type)
         self._unique_values = _unique_values(data=self._new_data, count=False)
 
         self._percent_na = 0.0

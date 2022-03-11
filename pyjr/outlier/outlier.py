@@ -103,9 +103,9 @@ def outlier_std(data: CleanData, plus: bool = True, std_value: int = 2, return_i
     new_data = np.array(data.data)
     if data.min >= 0:
         if plus:
-            ind = np.where(new_data <= _percentile(data=data.data, q=per_dic[std_value], length=data.len))[0]
+            ind = np.where(new_data <= _percentile(data=data.data, q=per_dic[std_value]))[0]
         else:
-            ind = np.where(new_data >= _percentile(data=data.data, q=per_dic[-std_value], length=data.len))[0]
+            ind = np.where(new_data >= _percentile(data=data.data, q=per_dic[-std_value]))[0]
     else:
         if plus:
             ind = np.where(new_data <= data.mean + data.std * std_value)[0]
@@ -145,10 +145,10 @@ def outlier_var(data: CleanData, plus: Optional[bool] = True, std_value: int = 2
     dev_based = np.array([temp_var - _variance(np.delete(lst, i), ddof=data.inputs['ddof']) for i, j in enumerate(lst)])
 
     if plus:
-        q = _percentile(data=lst, length=data.len, q=per_dic[std_value])
+        q = _percentile(data=lst, q=per_dic[std_value])
         ind = np.where(dev_based <= q)[0]
     else:
-        q = _percentile(data=lst, length=data.len, q=per_dic[-std_value])
+        q = _percentile(data=lst, q=per_dic[-std_value])
         ind = np.where(dev_based >= q)[0]
 
     if return_ind:
@@ -194,10 +194,10 @@ def outlier_regression(x_data: CleanData, y_data: CleanData, plus: Optional[bool
 
     reg_based = np.array([np.mean(np.square(mu_y - j)) for i, j in enumerate(line_ys)])
     if plus:
-        threshold = _percentile(data=reg_based, length=len(reg_based), q=per_dic[std_value])
+        threshold = _percentile(data=reg_based, q=per_dic[std_value])
         ind = np.where(reg_based <= threshold)[0]
     else:
-        threshold = _percentile(data=reg_based, length=len(reg_based), q=per_dic[-std_value])
+        threshold = _percentile(data=reg_based, q=per_dic[-std_value])
         ind = np.where(reg_based >= threshold)[0]
 
     if return_ind:
@@ -236,10 +236,10 @@ def outlier_distance(x_data: CleanData, y_data: CleanData, plus: Optional[bool] 
     x_y_other_centers = np.array([_dis(_cent(x_lst=[arr[i][0]], y_lst=[arr[i][1]]), cent_other) for i in ran])
 
     if plus:
-        x_y_other_centers_std = _percentile(data=x_y_other_centers, length=len(x_y_other_centers), q=per_dic[std_value])
+        x_y_other_centers_std = _percentile(data=x_y_other_centers, q=per_dic[std_value])
         ind = np.where(x_y_other_centers <= x_y_other_centers_std)[0]
     else:
-        x_y_other_centers_std = _percentile(data=x_y_other_centers, length=len(x_y_other_centers), q=per_dic[-std_value])
+        x_y_other_centers_std = _percentile(data=x_y_other_centers, q=per_dic[-std_value])
         ind = np.where(x_y_other_centers >= x_y_other_centers_std)[0]
 
     if return_ind:
@@ -273,11 +273,11 @@ def outlier_hist(data: CleanData, plus: Optional[bool] = True, std_value: int = 
     n, b = np.histogram(arr, bins='sturges')
 
     if plus:
-        qn = _percentile(data=data.data, q=per_dic[std_value], length=data.len)
+        qn = _percentile(data=data.data, q=per_dic[std_value])
         ind = np.where(n <= qn)[0]
         bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
     else:
-        qn = _percentile(data=data.data, q=per_dic[-std_value], length=data.len)
+        qn = _percentile(data=data.data, q=per_dic[-std_value])
         ind = np.where(n >= qn)[0]
         bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
 
@@ -326,13 +326,13 @@ def outlier_knn(x_data: CleanData, y_data: CleanData, plus: Optional[bool] = Tru
     distances = [_dis(cent1=i, cent2=j) for i in test_centers for j in test_centers]
 
     if plus:
-        threshold = _percentile(data=distances, q=per_dic[std_value], length=x_data.len)
+        threshold = _percentile(data=distances, q=per_dic[std_value])
         count_dic = {}
         for i, j in enumerate(arr):
             temp = arr[i, :] <= threshold
             count_dic[i] = _sum([1 for i in temp if i == True])
     else:
-        threshold = _percentile(data=distances, q=per_dic[-std_value], length=x_data.len)
+        threshold = _percentile(data=distances, q=per_dic[-std_value])
         count_dic = {}
         for i, j in enumerate(arr):
             temp = arr[i, :] >= threshold
@@ -347,10 +347,10 @@ def outlier_knn(x_data: CleanData, y_data: CleanData, plus: Optional[bool] = Tru
             lst.append(val)
 
     if plus:
-        val1 = _percentile(data=lst, q=per_dic[std_value], length=x_data.len)
+        val1 = _percentile(data=lst, q=per_dic[std_value])
         ind = np.where(np.array(lst) <= np.floor(val1))[0]
     else:
-        val1 = _percentile(data=lst, q=per_dic[-std_value], length=x_data.len)
+        val1 = _percentile(data=lst, q=per_dic[-std_value])
         ind = np.where(np.array(lst) >= np.floor(val1))[0]
 
     if return_ind:
@@ -368,10 +368,10 @@ def outlier_cooks_distance(x_data: CleanData, y_data: CleanData, plus: bool = Tr
     cooks = influence.cooks_distance
 
     if plus:
-        val1 = _percentile(data=cooks[0], q=per_dic[std_value], length=x_data.len)
+        val1 = _percentile(data=cooks[0], q=per_dic[std_value])
         ind = np.where(cooks[0] <= val1)[0]
     else:
-        val1 = _percentile(data=cooks[0], q=per_dic[-std_value], length=x_data.len)
+        val1 = _percentile(data=cooks[0], q=per_dic[-std_value])
         ind = np.where(cooks[0] >= val1)[0]
 
     if return_ind:
