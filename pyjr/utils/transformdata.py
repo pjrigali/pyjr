@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+import math
+import numpy as np
 from pyjr.utils.cleandata import CleanData
-from pyjr.utils.base import _check_type, _mean, _percentile, _median, _std
-
+from pyjr.utils.base import _check_type, _mean, _percentile, _median, _std, _check_list
+from sklearn.preprocessing import power_transform, quantile_transform
 
 @dataclass
 class TransformData:
@@ -13,11 +15,25 @@ class TransformData:
         self._len = self._cleanData.len
         self._ddof = self._cleanData.inputs['ddof']
 
-    def normalize(self) -> list:
+    def normalize_minmax(self) -> list:
         max_min_val = self._cleanData.max - self._cleanData.min
         if max_min_val == 0.0:
             max_min_val = 1.0
         lst = ((val - self._cleanData.min) / max_min_val for val in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
+
+    def normalize_mean(self) -> list:
+        max_min_val = self._cleanData.max - self._cleanData.min
+        if max_min_val == 0.0:
+            max_min_val = 1.0
+        lst = ((val - self._cleanData.mean) / max_min_val for val in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
+
+    def normalize_median(self) -> list:
+        max_min_val = self._cleanData.max - self._cleanData.min
+        if max_min_val == 0.0:
+            max_min_val = 1.0
+        lst = ((val - self._cleanData.median) / max_min_val for val in self._data)
         return _check_type(data=lst, value_type=self._value_type)
 
     def standardize(self) -> list:
@@ -57,6 +73,39 @@ class TransformData:
         pre = [0.0]
         post = [_mean(data=self._data[:i]) for i in ran]
         return _check_type(data=pre + post, value_type=self._value_type)
+
+    def log(self, constant: float = .01) -> list:
+        lst = (math.log(i + constant) for i in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
+
+    def box_cox(self, lam: float = 0.1) -> list:
+        """Only postive values"""
+        """lambda = -1. is a reciprocal transform.
+           lambda = -0.5 is a reciprocal square root transform.
+           lambda = 0.0 is a log transform.
+           lambda = 0.5 is a square root transform.
+           lambda = 1.0 is no transform."""
+        lst = ((i ** lam - 1) / lam for i in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
+
+    def sklearn_box_cox(self, standard: bool = True):
+        """Only postive values"""
+        arr = power_transform(X=np.array(self._data).reshape(self._len, 1), method='box-cox', standardize=standard)
+        return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
+
+    def sklearn_yeo_johnson(self, standard: bool = True):
+        """Postive values and negative values"""
+        arr = power_transform(X=np.array(self._data).reshape(self._len, 1), method='yeo-johnson', standardize=standard)
+        return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
+
+    def sklearn_quantile(self, n_quantiles: int = 25, output_distribution: str = 'uniform'):
+        arr = quantile_transform(X=np.array(self._data).reshape(self._len, 1), n_quantiles=n_quantiles,
+                                 output_distribution=output_distribution)
+        return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
+
+
+    def __repr__(self):
+        return 'TransformData'
 
     @property
     def clean_data(self):
