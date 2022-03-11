@@ -112,7 +112,6 @@ class TransformData:
         return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
 
 
-
     def __repr__(self):
         return 'TransformData'
 
