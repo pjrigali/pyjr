@@ -83,7 +83,7 @@ class CleanData:
                         'median_value': median_value, 'cap_zero': cap_zero, 'ddof': ddof, 'q_lst': q_lst}
         self._new_data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
                                median_value=median_value, cap_zero=cap_zero,ddof=ddof)
-        self._na_ind_lst =[ind for ind, val in enumerate(_check_list(data=data)) if _check_na(value=val) == True]
+        self._na_ind_lst = [ind for ind, val in enumerate(_check_list(data=data)) if _check_na(value=val) == True]
         self._len = len(self._new_data)
         if index is not None:
             if len(self._na_ind_lst) > 0:
