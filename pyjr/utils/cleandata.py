@@ -10,7 +10,8 @@ Author:
 from dataclasses import dataclass
 import pandas as pd
 import numpy as np
-from scipy.stats import kstest, normaltest, shapiro
+import math
+from scipy.stats import kstest, normaltest, shapiro, ttest_ind, ks_2samp
 from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
 from pyjr.utils.base import _percentiles, _unique_values, _check_na, _to_list, _check_list, _prep
 
@@ -90,6 +91,37 @@ class CleanData:
                 count += 1
         if count == 0:
             self._is_normal = True
+
+    def eucludian_distance(self, other):
+        return math.dist(self._new_data, other.data) / self._len
+
+    # MAPE
+    # can not handle zero in denominator
+    def mape(self, other):
+        actual = np.array([i if i != 0.0 else .01 for i in self._new_data])
+        pred = np.array([i if i != 0.0 else .01 for i in other.data])
+        return np.mean(np.abs((actual - pred) / actual)) * 100
+
+    # Auto-Correlation
+    def auto_corr(self, other):
+
+        def acf(x, length=50):
+            return [1] + [np.corrcoef(x[:-i], x[i:])[0,1] for i in range(1, length)]
+
+        return np.corrcoef(acf(self._new_data), acf(other.data))[0, 1]
+
+    # Correlation
+    def corr(self, other):
+        return np.corrcoef(self._new_data, other.data)[0, 1]
+
+    # T Test to compare means
+    def compare_means(self, other):
+        return ttest_ind(a=self._new_data, b=other.data)
+
+    # Kolmogorov-smirnov to see if from the same distribution
+    def kol_smirnov(self, other):
+        return ks_2samp(data1=self._new_data, data2=other.data)
+
 
     def __repr__(self):
         return 'CleanData'
