@@ -15,24 +15,6 @@ from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _
 from pyjr.utils.base import _percentiles, _unique_values, _check_na, _to_list, _check_list, _prep
 
 
-# def _stats(data: list, length: int, ddof: int = 1):
-#     """
-#     Calculate various stats for a list.
-#
-#     :param data: Input data.
-#     :type data: list.
-#     :param length: Length of input data.
-#     :type length: int.
-#     :param ddof: Desired Degrees of Freedom.
-#     :type ddof: int.
-#     :return: A group of stats.
-#     :note: *None*
-#     """
-#     return _min(data=data), _max(data=data), _mean(data=data), _variance(data=data, ddof=ddof), \
-#            _std(data=data, ddof=ddof), _sum(data=data), _median(data=data), _mode(data=data), \
-#            _skew(data=data, length=length), _kurtosis(data=data, length=length)
-
-
 @dataclass
 class CleanData:
     """
@@ -70,15 +52,9 @@ class CleanData:
                  x: bool = True, y: bool = False, ddof: int = 1, q_lst: list = [0.159, 0.841]):
 
         self._name = name
-        # self._na_handling = na_handling
-        # self._value_type = value_type
-        # self._cap_zero = cap_zero
-        # self._std_value = std_value
-        # self._median_value = median_value
         self._x = x
         self._y = y
         self._ddof = ddof
-        # self._q_lst = q_lst
         self._inputs = {'data': data, 'value_type': value_type, 'na_handling': na_handling, 'std_value': std_value,
                         'median_value': median_value, 'cap_zero': cap_zero, 'ddof': ddof, 'q_lst': q_lst}
         self._new_data = _prep(data=data, value_type=value_type, na_handling=na_handling, std_value=std_value,
@@ -98,8 +74,6 @@ class CleanData:
         else:
             self._index_lst = list(range(self._len))
 
-        # self._min, self._max, self._mu, self._var, self._std, self._sum, self._median, self._mode, self._skew, \
-        # self._kurt = _stats(data=self._new_data, length=self._len, ddof=self._ddof)
         self._lower, self._higher = _percentiles(data=self._new_data, q_lst=q_lst, value_type=value_type)
         self._unique_values = _unique_values(data=self._new_data, count=False)
 
@@ -130,31 +104,6 @@ class CleanData:
         """Name of data"""
         return self._name
 
-    # @property
-    # def na_handling(self) -> str:
-    #     """Method for handing Nan values"""
-    #     return self._na_handling
-    #
-    # @property
-    # def value_type(self) -> str:
-    #     """Desired type for data"""
-    #     return self._value_type
-    #
-    # @property
-    # def cap_zero(self) -> bool:
-    #     """Cap the lower value at 0"""
-    #     return self._cap_zero
-    #
-    # @property
-    # def std_value(self) -> int:
-    #     """Value to multiply the std by"""
-    #     return self._std_value
-    #
-    # @property
-    # def median_value(self) -> int:
-    #     """Value to multiply the std by"""
-    #     return self._median_value
-
     @property
     def is_x(self) -> bool:
         """Is the data Independent"""
@@ -164,11 +113,6 @@ class CleanData:
     def is_y(self) -> bool:
         """is the data Dependent"""
         return self._y
-
-    # @property
-    # def ddof(self) -> int:
-    #     """Degrees of Freedom used in std and var calcs"""
-    #     return self._ddof
 
     @property
     def data(self) -> list:
