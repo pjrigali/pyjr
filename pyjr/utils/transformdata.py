@@ -3,7 +3,7 @@ import math
 import numpy as np
 from pyjr.utils.cleandata import CleanData
 from pyjr.utils.base import _check_type, _mean, _percentile, _median, _std, _check_list
-from sklearn.preprocessing import power_transform, quantile_transform
+from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 @dataclass
 class TransformData:
@@ -99,9 +99,18 @@ class TransformData:
         return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
 
     def sklearn_quantile(self, n_quantiles: int = 25, output_distribution: str = 'uniform'):
+        """Recommended to not do before splitting"""
+        """Also accepts 'normal' """
         arr = quantile_transform(X=np.array(self._data).reshape(self._len, 1), n_quantiles=n_quantiles,
                                  output_distribution=output_distribution)
         return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
+
+    def sklearn_robust_scaling(self, with_centering: bool = True, with_scaling: bool = True, quantile_range: tuple = (25.0, 75.0)):
+        """Recommended to not do before splitting"""
+        arr = robust_scale(X=np.array(self._data).reshape(self._len, 1), with_centering=with_centering,
+                           with_scaling=with_scaling, quantile_range=quantile_range)
+        return _check_type(data=(i[0] for i in _check_list(data=arr)), value_type=self._value_type)
+
 
 
     def __repr__(self):
