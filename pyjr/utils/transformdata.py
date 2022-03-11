@@ -17,12 +17,16 @@ class TransformData:
         max_min_val = self._cleanData.max - self._cleanData.min
         if max_min_val == 0.0:
             max_min_val = 1.0
-        return _check_type(data=[(val - self._cleanData.min) / max_min_val for val in self._data],
-                           value_type=self._value_type)
+        lst = ((val - self._cleanData.min) / max_min_val for val in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
 
     def standardize(self) -> list:
-        return _check_type(data=[(item - self._cleanData.mean) / self._cleanData.std for item in self._data],
-                           value_type=self._value_type)
+        lst = ((item - self._cleanData.mean) / self._cleanData.std for item in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
+
+    def standardize_median(self) -> list:
+        lst = ((item - self._cleanData.median) / self._cleanData.lower_percentile for item in self._data)
+        return _check_type(data=lst, value_type=self._value_type)
 
     def running_mean(self, num: int) -> list:
         ran = range(num, self._len)
