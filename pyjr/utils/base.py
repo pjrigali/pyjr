@@ -118,51 +118,6 @@ def _unique_values(data: list, count: False) -> list:
         return _check_type(data=set(data), value_type='float')
 
 
-# def _temp_unique_values(data: Union[list, np.ndarray, pd.Series],
-#                         count: bool = False,
-#                         order: bool = False,
-#                         indexes: bool = False,
-#                         na_handling: str = 'none',
-#                         value_type: str = 'float',
-#                         std_value: int = 3,
-#                         median_value: float = 0.023,
-#                         cap_zero: bool = True,
-#                         ddof: int = 1):
-#     """
-#     Finds unique values from a list.
-#
-#     :param data: Input data.
-#     :type data: list.
-#     :param count: Whether to count the values.
-#     :param order: Whether to sort() the values.
-#     :param indexes: Whether to return the indexes.
-#     :return: Returns either a list or dict.
-#     :note: *None*
-#     """
-#     default = {'data': [], 'value_type': 'float', 'na_handling': 'none', 'std_value': 3, 'median_value': 0.023,
-#                'cap_zero': True, 'ddof': 1}
-#     new_data = Args(args=(locals(), default)).data
-#     if order:
-#         temp_dic, temp_lst = {}, []
-#         for item in new_data:
-#             if item not in temp_dic:
-#                 temp_dic[item] = True
-#                 temp_lst.append(item)
-#         return temp_lst
-#     if count:
-#         return {i: new_data.count(i) for i in set(new_data)}
-#     if indexes:
-#         temp_dic, ind_dic = {}, {}
-#         for ind, item in enumerate(new_data):
-#             if item in temp_dic:
-#                 ind_dic[item].append(ind)
-#             else:
-#                 temp_dic[item] = True
-#                 ind_dic[item] = [ind]
-#         return ind_dic
-#     return _to_list(data=set(new_data))
-
-
 def _search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, float, int]:
     """
 
