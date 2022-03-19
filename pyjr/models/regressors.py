@@ -1,3 +1,12 @@
+"""
+Regressor class.
+
+Usage:
+ ./models/regressors.py
+
+Author:
+ Peter Rigali - 2022-03-19
+"""
 from dataclasses import dataclass
 from typing import Union, List, Tuple
 import pandas as pd

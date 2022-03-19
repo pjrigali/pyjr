@@ -1,3 +1,12 @@
+"""
+ModelData class.
+
+Usage:
+ ./utils/model_data.py
+
+Author:
+ Peter Rigali - 2022-03-19
+"""
 from dataclasses import dataclass
 from typing import Union, List, Tuple
 import pandas as pd
