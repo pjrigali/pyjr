@@ -7,15 +7,11 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
+from dataclasses import dataclass
+from typing import List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
-# from warzone.base import normalize, running_mean, cumulative_mean
-from typing import List, Optional
-from scipy import stats
-from dataclasses import dataclass
-# import six
 
 
 def insert_every(L, char, every):
@@ -26,8 +22,8 @@ def insert_every(L, char, every):
             yield char
 
 
-fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
+# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
+# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
 
 
 @dataclass
@@ -98,6 +94,9 @@ class Scatter:
     :note: *None*
 
     """
+
+    __slots__ = ("ax")
+
     def __init__(self,
                  data: pd.DataFrame,
                  limit: Optional[int] = None,
@@ -141,18 +140,6 @@ class Scatter:
             else:
                 color_lst = [plt.get_cmap('viridis')(1. * i / n) for i in range(n)]
 
-        if normalize_x is None:
-            normalize_x = []
-
-        if running_mean_x is None:
-            running_mean_x = []
-
-        if cumulative_mean_x is None:
-            cumulative_mean_x = []
-
-        if regression_line is None:
-            regression_line = []
-
         fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
@@ -163,23 +150,10 @@ class Scatter:
         if compare_two:
             label_lst = [compare_two[1]]
             x_axis = data[compare_two[0]]
-            if compare_two[0] in normalize_x:
-                x_axis = normalize(x_axis)
-            elif compare_two[0] in running_mean_x:
-                x_axis = running_mean(x_axis, running_mean_value)
-            elif compare_two[0] in cumulative_mean_x:
-                x_axis = cumulative_mean(x_axis)
 
         count = 0
         for ind in label_lst:
-
             d = data[ind]
-            if ind in normalize_x:
-                d = normalize(np.array(d))
-            elif ind in running_mean_x:
-                d = running_mean(np.array(d), running_mean_value)
-            elif ind in cumulative_mean_x:
-                d = cumulative_mean(np.array(d))
 
             ax.scatter(x=x_axis, y=d, color=color_lst[count], label=ind)
 
@@ -208,12 +182,7 @@ class Scatter:
         if y_limit:
             ax.set_ylim(bottom=y_limit[0], top=y_limit[1])
 
-        self._ax = ax
+        self.ax = ax
 
     def __repr__(self):
         return 'Scatter Plot'
-
-    @property
-    def ax(self):
-        """Returns a plot"""
-        return self._ax

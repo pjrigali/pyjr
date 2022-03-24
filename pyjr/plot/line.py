@@ -7,15 +7,11 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
-
+from dataclasses import dataclass
+from typing import List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
-from typing import List, Optional
-from scipy import stats
-from dataclasses import dataclass
-# import six
 
 
 def insert_every(L, char, every):
@@ -26,8 +22,8 @@ def insert_every(L, char, every):
             yield char
 
 
-fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
+# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
+# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
 
 
 @dataclass
@@ -88,6 +84,9 @@ class Line:
     :note: *None*
 
     """
+
+    __slots__ = ("ax")
+
     def __init__(self,
                  data: pd.DataFrame,
                  limit: Optional[int] = None,
@@ -125,15 +124,6 @@ class Line:
             else:
                 color_lst = [plt.get_cmap('viridis')(1. * i / n) for i in range(n)]
 
-        if normalize_x is None:
-            normalize_x = []
-
-        if running_mean_x is None:
-            running_mean_x = []
-
-        if cumulative_mean_x is None:
-            cumulative_mean_x = []
-
         fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
@@ -141,15 +131,7 @@ class Line:
 
         count = 0
         for ind in label_lst:
-
             d = data[ind]
-            if ind in normalize_x:
-                d = normalize(np.array(d))
-            elif ind in running_mean_x:
-                d = running_mean(np.array(d), running_mean_value)
-            elif ind in cumulative_mean_x:
-                d = cumulative_mean(np.array(d))
-
             ax.plot(d, color=color_lst[count], label=ind)
             count += 1
 
@@ -162,12 +144,7 @@ class Line:
 
         ax.set_xlabel(xlabel, color=xlabel_color, fontsize=xlabel_size)
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
-        self._ax = ax
+        self.ax = ax
 
     def __repr__(self):
         return 'Line Plot'
-
-    @property
-    def ax(self):
-        """Returns a plot"""
-        return self._ax

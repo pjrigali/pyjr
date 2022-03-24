@@ -1,3 +1,12 @@
+"""
+Dispatch for tracking function time, memory, and cpu use.
+
+Usage:
+ ./utils/evaluate.py
+
+Author:
+ Peter Rigali - 2022-03-19
+"""
 import time
 import os
 import psutil

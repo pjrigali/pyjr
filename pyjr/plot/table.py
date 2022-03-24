@@ -7,15 +7,11 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
+from dataclasses import dataclass
+from typing import List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
-# from warzone.base import normalize, running_mean, cumulative_mean
-from typing import List, Optional
-from scipy import stats
-from dataclasses import dataclass
-# import six
 
 
 def insert_every(L, char, every):
@@ -26,8 +22,8 @@ def insert_every(L, char, every):
             yield char
 
 
-fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
+# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
+# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
 
 
 @dataclass
@@ -62,6 +58,9 @@ class Table:
     :note: *None*
 
     """
+
+    __slots__ = ("ax")
+
     # import matplotlib
     # matplotlib.colors.to_rgba(c, alpha=None)
     def __init__(self,
@@ -132,12 +131,7 @@ class Table:
         ax.axis('off')
         fig.tight_layout()
 
-        self._ax = ax
+        self.ax = ax
 
     def __repr__(self):
         return 'Table Plot'
-
-    @property
-    def ax(self):
-        """Returns a plot"""
-        return self._ax
