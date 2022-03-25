@@ -14,8 +14,7 @@ import random
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from pyjr.utils.base import _sum
-from pyjr.utils.tools import _round_to, _to_list, _unique_values
-from pyjr.utils.tools import _check_len, _check_names, _add_column
+from pyjr.utils.tools import _round_to, _to_metatype, _unique_values, _check_len, _check_names, _add_column
 from sklearn.decomposition import PCA, TruncatedSVD
 
 
@@ -110,19 +109,19 @@ class ModelingData:
 
     def get_balance(self):
         """Returns the data balance for Y_data between train, test, and valid"""
-        train_lst = _to_list(data=self.y_train.reshape(1, self.y_train.shape[0])[0])
-        test_lst = _to_list(data=self.y_test.reshape(1, self.y_test.shape[0])[0])
+        train_lst = _to_metatype(data=self.y_train.reshape(1, self.y_train.shape[0])[0])
+        test_lst = _to_metatype(data=self.y_test.reshape(1, self.y_test.shape[0])[0])
         dic = {"train": _unique_values(data=train_lst, count=True),
                "test": _unique_values(data=test_lst, count=True)}
 
         if self.y_valid is not None:
-            valid_lst = _to_list(data=self.y_valid.reshape(1, self.y_valid.shape[0])[0])
+            valid_lst = _to_metatype(data=self.y_valid.reshape(1, self.y_valid.shape[0])[0])
             dic["valid"] = _unique_values(data=valid_lst, count=True)
 
         final_dic = {i: {} for i in dic.keys()}
         for key, val in dic.items():
             for key1, val1 in val.items():
-                final_dic[key][key1] = _round_to(data=val[key1] / _sum(data=_to_list(data=val.values())),
+                final_dic[key][key1] = _round_to(data=val[key1] / _sum(data=_to_metatype(data=val.values())),
                                                  val=100, remainder=True)
         return final_dic
 

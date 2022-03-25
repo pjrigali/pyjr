@@ -9,10 +9,9 @@ Author:
 """
 from dataclasses import dataclass
 from typing import Union, Optional
-import pandas as pd
+from pandas import Series
 import numpy as np
-from pyjr.utils.tools import _prep, _unique_values, _to_list, _search_dic_values, _to_type, _check_type, _round_to, _replace_na, _replacement_value
-from pyjr.utils.base import _min, _max
+from pyjr.utils.tools import _prep, _unique_values, _to_type, _replace_na, _replacement_value
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 
@@ -58,7 +57,7 @@ def oneHotEncode(data: list, dtype: str = "str_", na: str = None) -> np.ndarray:
     return (data, dtype, na)
 
 
-def calc_gini(data: Union[list, np.ndarray, pd.Series],
+def calc_gini(data: Union[list, np.ndarray, Series],
               na_handling: str = 'none',
               dtype: str = 'float',
               std_value: int = 3,
@@ -388,4 +387,3 @@ def outlier_cooks_distance(x_data: Data, y_data: Data, plus: bool = True, std_va
         return ind
     else:
         return np.array(x_data.data)[ind]
-

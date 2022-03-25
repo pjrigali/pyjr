@@ -14,7 +14,8 @@ from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from scipy import signal
 from pyts.bag_of_words import BagOfWords, WordExtractor
-from pyts.approximation import DiscreteFourierTransform, MultipleCoefficientBinning, PiecewiseAggregateApproximation, SymbolicAggregateApproximation, SymbolicFourierApproximation
+from pyts.approximation import DiscreteFourierTransform, MultipleCoefficientBinning, PiecewiseAggregateApproximation
+from pyts.approximation import SymbolicAggregateApproximation, SymbolicFourierApproximation
 from pyts.decomposition import SingularSpectrumAnalysis
 from pyts.transformation import BOSS, ShapeletTransform
 from pyts.metrics import boss, dtw

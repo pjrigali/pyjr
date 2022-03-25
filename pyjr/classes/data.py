@@ -2,18 +2,18 @@
 CleanData class.
 
 Usage:
- ./utils/cleandata.py
+ ./utils/data.py
 
 Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-import pandas as pd
+from pandas import DataFrame
 import numpy as np
-import math
 from scipy.stats import kstest, normaltest, shapiro
-from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile, _percentiles
-from pyjr.utils.tools import _unique_values, _check_na, _prep
+from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
+from pyjr.utils.base import _percentiles, _range
+from pyjr.utils.tools import _unique_values, _check_na, _prep, _to_metatype
 
 
 @dataclass
@@ -50,31 +50,24 @@ class Data:
     """
 
     __slots__ = ("name", "data", "len", "unique", "dtype", "mean", "median", "mode", "var", "std", "lower", "higher",
-                 "min", "max", "sum", "skew", "kurt", "per", "distribution", "na")
+                 "min", "max", "sum", "skew", "kurt", "per", "rang", "distribution", "na")
 
     def __init__(self, data = None, name: str = None, index = None, na_handling: str = 'none',
                  dtype: str = 'float', cap_zero: bool = True, std_value: int = 3, median_value: float = 0.023,
-                 ddof: int = 1, q_lst: list = [0.159, 0.841], stats: bool = True,
+                 ddof: int = 1, q_lst: tuple = (0.159, 0.841), stats: bool = True,
                  distribution: bool = False, unique: bool = False):
 
+        self.name = None
         if name:
             self.name = name
-        else:
-            self.name = None
-
         self.data = _prep(data=data, dtype=dtype, na_handling=na_handling, std_value=std_value,
                           median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-        if self.data is None:
-            raise AttributeError("Data is empty.")
-
+        self.unique = None
         if unique:
             self.unique = _unique_values(data=self.data, count=False)
-        else:
-            self.unique = None
 
         self.len = self.data.__len__()
         self.dtype = dtype
-
         if stats and dtype in {"float": True, "int": True}:
             self.mean = _mean(data=self.data)
             self.median = _median(data=self.data)
@@ -88,16 +81,21 @@ class Data:
             self.skew = _skew(data=self.data)
             self.kurt = _kurtosis(data=self.data)
             self.per = _percentile(data=self.data, q=0.75)
+            self.rang = _range(data=self.data)
         else:
-            self.mean, self.median, self.mode, self.var, self.std, self.lower, self.higher, self.min, self.max, self.sum, self.skew, self.kurt, self.per = None, None, None, None, None, None, None, None, None, None, None, None, None
+            self.mean, self.median, self.mode, self.var, self.std = None, None, None, None, None
+            self.lower, self.higher, self.min, self.max, self.sum = None, None, None, None, None
+            self.skew, self.kurt, self.per, self.rang = None, None, None, None
 
         self.na = None
         if self.data.__len__() != data.__len__():
-            _na_ind_lst = [ind for ind, val in enumerate(_check_list(data=data)) if _check_na(value=val) == True]
+            tup = _to_metatype(data=data, dtype='tuple')
+            _na_ind_lst = [ind for ind, val in enumerate(tup) if _check_na(value=val) == True]
             if _na_ind_lst.__len__() > 0:
-                _percent_na = len(_na_ind_lst) / self.len
+                _percent_na = _na_ind_lst.__len__() / self.len
                 self.na = {"index": _na_ind_lst, "percent": _percent_na}
 
+        self.distribution = None
         if distribution:
             self.distribution, count = {'Kolmogorov-Smirnov': kstest(self.data, 'norm')[1],
                                         'DAgostino': normaltest(self.data)[1],
@@ -108,8 +106,7 @@ class Data:
                     count += 1
             if count == 0:
                 self.distribution['normal'] = True
-        else:
-            self.distribution = None
+
 
     def add_percentile(self, q: float) -> float:
         self.per = _percentile(data=self.data, q=q)
@@ -136,7 +133,7 @@ class Data:
         else:
             return np.array(self.data).reshape(self.len, 1)
 
-    def dataframe(self, index: list = None, name: str = None) -> pd.DataFrame:
+    def dataframe(self, index: list = None, name: str = None) -> DataFrame:
         """Returns a pd.DataFrame"""
         if index is None:
             index = range(self.len)
@@ -149,7 +146,7 @@ class Data:
         else:
             if name is None:
                 name = self.name
-        return pd.DataFrame(self.data, columns=[name], index=index)
+        return DataFrame(self.data, columns=[name], index=index)
 
     def __repr__(self):
         return 'CleanData'

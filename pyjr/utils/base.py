@@ -7,13 +7,12 @@ Usage:
 Author:
  Peter Rigali - 2022-03-10
 """
-import numpy as np
-import pandas as pd
-from pyjr.utils.tools import _unique_values, _search_dic_values, _round_to, _to_list
+from typing import Union
+from pyjr.utils.tools import _unique_values, _search_dic_values, _round_to, _to_metatype
 
 
 # Internal Math Functions
-def _max(data: list) -> float:
+def _max(data: Union[list, tuple]) -> float:
     """
     Find the max value of a list.
 
@@ -27,7 +26,7 @@ def _max(data: list) -> float:
     return data[0]
 
 
-def _min(data: list):
+def _min(data: Union[list, tuple]):
     """
     Find the min value of a list.
 
@@ -41,7 +40,21 @@ def _min(data: list):
     return data[0]
 
 
-def _mean(data: list) -> float:
+def _range(data: Union[list, tuple]) -> float:
+    """
+    Find the max to min range value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Range value.
+    :note: *None*
+    """
+    if data.__len__() > 1:
+        return _max(data=data) - _min(data=data)
+    return 0.0
+
+
+def _mean(data: Union[list, tuple]) -> float:
     """
     Find the mean value of a list.
 
@@ -54,7 +67,7 @@ def _mean(data: list) -> float:
     return sum(data) / data.__len__()
 
 
-def _variance(data: list, ddof: int = 1) -> float:
+def _variance(data: Union[list, tuple], ddof: int = 1) -> float:
     """
     Find the variance value of a list.
 
@@ -85,7 +98,7 @@ def _std(data: list, ddof: int = 1) -> float:
     return _variance(data=data, ddof=ddof) ** .5
 
 
-def _sum(data: list) -> float:
+def _sum(data: Union[list, tuple]) -> float:
     """
     Find the sum value of a list.
 
@@ -99,7 +112,7 @@ def _sum(data: list) -> float:
     return data[0]
 
 
-def _median(data: list) -> float:
+def _median(data: Union[list, tuple]) -> float:
     """
     Find the median value of a list.
 
@@ -117,7 +130,7 @@ def _median(data: list) -> float:
         return _mean(data=[sorted_lst[index]] + [sorted_lst[index + 1]])
 
 
-def _mode(data: list) -> float:
+def _mode(data: Union[list, tuple]) -> float:
     """
     Find the mode value of a list.
 
@@ -128,14 +141,14 @@ def _mode(data: list) -> float:
     :note: *None*
     """
     count_dic = _unique_values(data=data, count=True)
-    count_dic_values = _to_list(data=count_dic.values())
+    count_dic_values = _to_metatype(data=count_dic.values())
     dic_max = _max(count_dic_values)
     lst = []
     for i in count_dic_values:
         val = _search_dic_values(dic=count_dic, item=dic_max)
         lst.append((val, i))
         # del count_dic[val]
-        count_dic_values = _to_list(data=count_dic.values())
+        count_dic_values = _to_metatype(data=count_dic.values())
 
     first_val, second_val = lst[0][0], lst[0][1]
     equal_lst = [i[0] for i in lst if second_val == i[1]]
@@ -147,7 +160,7 @@ def _mode(data: list) -> float:
         return _median(data=equal_lst)
 
 
-def _skew(data: list) -> float:
+def _skew(data: Union[list, tuple]) -> float:
     """
     Find the skew value of a list.
 
@@ -163,7 +176,7 @@ def _skew(data: list) -> float:
     return (((_sum(data=[i - mu for i in data]) ** 3) / length) / stdn) * ((length * (length - 1)) ** .5) / (length - 2)
 
 
-def _kurtosis(data: list) -> float:
+def _kurtosis(data: Union[list, tuple]) -> float:
     """
     Find the kurtosis value of a list.
 
@@ -179,7 +192,7 @@ def _kurtosis(data: list) -> float:
     return (((_sum(data=[i - mu for i in data])**4) / data.__len__()) / stdn) - 3
 
 
-def _percentile(data: list, q: float) -> float:
+def _percentile(data: Union[list, tuple], q: float) -> float:
     """
     Find the percentile value of a list.
 
@@ -198,7 +211,7 @@ def _percentile(data: list, q: float) -> float:
             return item / 1000.0
 
 
-def _percentiles(data: list, q_lst: list = [0.159, 0.841]):
+def _percentiles(data: Union[list, tuple], q_lst: Union[list, tuple] = (0.159, 0.841)):
     """
     Calculate various percentiles for a list.
 

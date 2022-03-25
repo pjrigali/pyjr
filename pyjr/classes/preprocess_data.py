@@ -1,11 +1,20 @@
+"""
+PreProcess class.
+
+Usage:
+ ./utils/preprocess_data.py
+
+Author:
+ Peter Rigali - 2022-03-23
+"""
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Optional
 import math
 import numpy as np
-import pandas as pd
+from pandas import DataFrame
 from pyjr.classes.data import Data
 from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
-from pyjr.utils.tools import _check_type, _to_list, _unique_values
+from pyjr.utils.tools import _check_type, _to_metatype, _unique_values
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 
@@ -22,9 +31,6 @@ class PreProcess:
 
     def add_normalize(self, stat: str = 'min'):
         """Normalize data, default is min which keeps values between 0 and 1"""
-        if self.cleanData.max is None and self.cleanData.min is None:
-            self.cleanData.max = _max(data=self.cleanData.data)
-            self.cleanData.min = _min(data=self.cleanData.data)
         max_min_val = self.cleanData.max - self.cleanData.min
         if max_min_val == 0.0:
             max_min_val = 1.0
@@ -44,14 +50,8 @@ class PreProcess:
     def add_standardize(self, stat: str = "mean"):
         """Standardize data, with a mean of 0 and std of 1"""
         if stat == "mean":
-            if self.cleanData.mean is None:
-                self.cleanData.mean = _mean(data=self.cleanData.data)
-                self.cleanData.std = _std(data=self.cleanData.data)
             lst = ((item - self.cleanData.mean) / self.cleanData.std for item in self.cleanData.data)
         elif stat == "median":
-            if self.cleanData.median is None:
-                self.cleanData.median = _median(data=self.cleanData.data)
-                self.cleanData.higher = _percentile(data=self.cleanData.data, q= 0.841)
             temp_std = (self.cleanData.higher - self.cleanData.median)
             lst = ((item - self.cleanData.median) / temp_std for item in self.cleanData.data)
         self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
@@ -116,7 +116,7 @@ class PreProcess:
     def add_sklearn_box_cox(self, standard: bool = True):
         """Only postive values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='box-cox', standardize=standard)
-        self.data = _check_type(data=(i[0] for i in _to_list(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_box_cox"
         self.len = self.data.__len__()
         return self
@@ -124,7 +124,7 @@ class PreProcess:
     def add_sklearn_yeo_johnson(self, standard: bool = True):
         """Postive values and negative values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='yeo-johnson', standardize=standard)
-        self.data = _check_type(data=(i[0] for i in _to_list(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_yeo_johnson"
         self.len = self.data.__len__()
         return self
@@ -134,7 +134,7 @@ class PreProcess:
         """Also accepts 'normal' """
         arr = quantile_transform(X=self.cleanData.array(axis=1), n_quantiles=n_quantiles,
                                  output_distribution=output_distribution)
-        self.data = _check_type(data=(i[0] for i in _to_list(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_quantile_" + str(n_quantiles) + "_" + output_distribution
         self.len = self.data.__len__()
         return self
@@ -144,7 +144,7 @@ class PreProcess:
         """Recommended to not do before splitting"""
         arr = robust_scale(X=self.cleanData.array(axis=1), with_centering=with_centering, with_scaling=with_scaling,
                            quantile_range=quantile_range)
-        self.data = _check_type(data=(i[0] for i in _to_list(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_robust"
         self.len = self.data.__len__()
         return self
@@ -197,7 +197,7 @@ class PreProcess:
         else:
             return np.array(self.data).reshape(self.len, 1)
 
-    def dataframe(self, index: list = None, name: str = None) -> pd.DataFrame:
+    def dataframe(self, index: list = None, name: str = None) -> DataFrame:
         """Returns a pd.DataFrame"""
         if index is None:
             index = range(self.len)
@@ -210,7 +210,7 @@ class PreProcess:
         else:
             if name is None:
                 name = self.name
-        return pd.DataFrame(self.data, columns=[name], index=index)
+        return DataFrame(self.data, columns=[name], index=index)
 
     def __repr__(self):
         return 'PreProcessData'

@@ -14,7 +14,7 @@ import pandas as pd
 import statsmodels.api as sm
 from pyjr.classes.model_data import ModelingData
 from pyjr.utils.base import _mean, _percentile, _variance, _sum, _std, _min
-from pyjr.utils.tools import _add_constant, _round_to, _to_list, _cent, _dis, stack
+from pyjr.utils.tools import _add_constant, _round_to, _to_metatype, _cent, _dis, stack
 
 
 @dataclass
@@ -196,7 +196,7 @@ class FeaturePerformance:
                     count_dic[i] = _sum([1 for i in temp if i == True])
 
             lst = []
-            for i in _to_list(data=count_dic.values()):
+            for i in _to_metatype(data=count_dic.values()):
                 if isinstance(i, list):
                     for val1 in i:
                         lst.append(val1)

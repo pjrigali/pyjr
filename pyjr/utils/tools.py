@@ -9,8 +9,8 @@ Author:
 """
 from typing import Union, List, Optional
 import numpy as np
-import pandas as pd
-import collections
+from collections.abc import KeysView, ValuesView
+from pandas import Series, DataFrame
 
 
 # Cleaning Functions.
@@ -22,20 +22,31 @@ def _empty(data) -> bool:
         return False
 
 
-def _to_list(data) -> list:
-    """Converts list-adjacent objects to a list"""
-    if isinstance(data, list):
+def _to_metatype(data, dtype: str = 'list') -> list:
+    """Converts list-adjacent objects to a list or tuple"""
+    if dtype not in {'list': True, 'tuple': True}:
+        raise AttributeError("dtype input must be either {list, tuple}.")
+    if isinstance(data, {'list': list, 'tuple': tuple}[dtype]):
         return data
-    elif isinstance(data, pd.Series):
-        return data.to_list()
-    elif isinstance(data, np.ndarray):
-        return data.tolist()
-    elif isinstance(data, (set, collections.abc.KeysView, collections.abc.ValuesView, tuple)):
-        return list(data)
-    elif isinstance(data, (int, float, str, object)):
-        return [data]
+    elif isinstance(data, Series):
+        if dtype == 'list':
+            return data.to_list()
+        else:
+            return tuple(data.to_list())
+    elif isinstance(data, (np.ndarray, DataFrame)):
+        if dtype == 'list':
+            return data.tolist()
+        else:
+            return tuple(data.tolist())
+    elif isinstance(data, (set, KeysView, ValuesView)):
+        return {'list': list, 'tuple': tuple}[dtype](data)
+    elif isinstance(data, (int, float, str, object, np.int_, np.float_, np.str, np.object)):
+        if dtype == 'list':
+            return [data]
+        else:
+            return (data, )
     else:
-        raise AttributeError('data needs to have a type of {np.ndarray, pd.Series, list, set, int, float, str, object}')
+        raise AttributeError('Input data needs to have a type of {np.ndarray, pd.Series, list, set, int, float, str, object}')
 
 
 def _to_type(value: Union[float, int, str, object], dtype: str = 'float') -> Union[float, int, str, object]:
@@ -71,7 +82,7 @@ def _remove_nan(data: list) -> list:
     return [val for val in data if _check_na(val) is False]
 
 
-def _round_to(data: Union[list, pd.Series, np.ndarray, float, int], val: float, remainder: bool = False) -> Union[list, float]:
+def _round_to(data: Union[list, Series, np.ndarray, float, int], val: float, remainder: bool = False) -> Union[list, float]:
     """
     Rounds a value or list.
 
@@ -88,8 +99,8 @@ def _round_to(data: Union[list, pd.Series, np.ndarray, float, int], val: float, 
             return round(_to_type(value=data, dtype='float') * val) / val
         else:
             return round(_to_type(value=data, dtype='float') / val) * val
-    elif isinstance(data, (list, pd.Series, np.ndarray)):
-        data = (_to_type(value=i, dtype='float') for i in _to_list(data=data))
+    elif isinstance(data, (list, Series, np.ndarray)):
+        data = (_to_type(value=i, dtype='float') for i in _to_metatype(data=data))
         if remainder is True:
             return [round(item * val) / val for item in data]
         else:
@@ -144,16 +155,36 @@ def _replace_na(data: list, replacement_value: float = None) -> tuple:
         return tuple([val if _check_na(value=val) is False else replacement_value for val in data])
 
 
-def _prep(data, dtype: str = 'float', na_handling: str = 'median', std_value: int = 3, median_value: float = 0.023,
-          cap_zero: bool = True, ddof: int = 1):
-    """Cleans data"""
-    if _empty(data=data) is False:
-        data = _to_list(data=data)
-        na_value = _replacement_value(data=data, na_handling=na_handling, std_value=std_value,
-                                      median_value=median_value, cap_zero=cap_zero, ddof=ddof)
-        return _check_type(data=_replace_na(data=data, replacement_value=na_value), dtype=dtype)
-    else:
-        return None
+# def _prep(data, dtype: str = 'float', na_handling: str = 'median', std_value: int = 3, median_value: float = 0.023,
+#           cap_zero: bool = True, ddof: int = 1):
+#     """Cleans data"""
+#     if _empty(data=data) is False:
+#         data = _to_metatype(data=data)
+#         na_value = _replacement_value(data=data, na_handling=na_handling, std_value=std_value,
+#                                       median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+#         return _check_type(data=_replace_na(data=data, replacement_value=na_value), dtype=dtype)
+#     else:
+#         return None
+
+
+def _prep(data, meta_type: str = 'tuple', dtype: str = 'float', na_handling: str = 'zero'):
+    """Clean data"""
+    # Check Empty
+    if _empty(data=data):
+        raise AttributeError("Data entered is empty.")
+    # Convert to list
+    data = _to_metatype(data=data, dtype='list')
+    # Check type, check na, replace na
+    na = None
+    for ind, val in enumerate(data):
+        if _check_na(value=val):
+            if na is None:
+                na = _replacement_value(data=data, na_handling=na_handling)
+            val = na
+        data[ind] = _to_type(value=val, dtype=dtype)
+    # Convert to metadata
+    data = _to_metatype(data=data, dtype=meta_type)
+    return data
 
 
 # Non-cleaning related functions
