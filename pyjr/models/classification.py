@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-19
 """
 from dataclasses import dataclass
-from pyjr.utils.model_data import ModelingData
+from pyjr.classes.model_data import ModelingData
 from sklearn.linear_model import RidgeClassifier, SGDClassifier, LogisticRegression
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier, NearestCentroid

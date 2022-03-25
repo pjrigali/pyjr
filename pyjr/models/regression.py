@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-19
 """
 from dataclasses import dataclass
-from pyjr.utils.model_data import ModelingData
+from pyjr.classes.model_data import ModelingData
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, LassoLars, BayesianRidge, ARDRegression
 from sklearn.linear_model import SGDRegressor, QuantileRegressor, HuberRegressor
 from sklearn.neighbors import KNeighborsRegressor

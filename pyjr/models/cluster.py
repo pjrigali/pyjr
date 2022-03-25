@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-19
 """
 from dataclasses import dataclass
-from pyjr.utils.model_data import ModelingData
+from pyjr.classes.model_data import ModelingData
 from sklearn.cluster import KMeans, AffinityPropagation, MeanShift, AgglomerativeClustering, Birch
 from sklearn.metrics import rand_score, adjusted_rand_score, mutual_info_score, v_measure_score, silhouette_score
 from sklearn.metrics.cluster import contingency_matrix, homogeneity_score, completeness_score
