@@ -121,7 +121,7 @@ def _to_type(value: Union[float, int, str, object], dtype: str = 'float') -> Uni
         return {'float': float, 'int': int, 'str': str, 'object': object}[dtype](value)
 
 
-def _check_type(data: list, dtype: str = 'float') -> tuple:
+def _check_type(data: Union[list, tuple], dtype: str = 'float') -> tuple:
     """Checks type of values in a list"""
     return tuple([_to_type(value=val, dtype=dtype) for val in data])
 

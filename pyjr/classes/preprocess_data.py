@@ -14,7 +14,7 @@ import numpy as np
 from pandas import DataFrame
 from pyjr.classes.data import Data
 from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
-from pyjr.utils.tools import _check_type, _to_metatype, _unique_values
+from pyjr.utils.tools import _check_type, _to_metatype
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 
@@ -61,7 +61,7 @@ class PreProcess:
 
     def add_running(self,  window: int, stat: str = "mean", q: float = 0.50):
         """Calc running statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median":_median,
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median": _median,
                 "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _percentile}[stat]
         ran = range(window, self.cleanData.len)
         if stat != "percentile":
@@ -78,7 +78,7 @@ class PreProcess:
 
     def add_cumulative(self, stat: str = "mean", q: float = 0.75):
         """Calc cumulative statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median":_median,
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median": _median,
                 "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _percentile}[stat]
         ran = range(1, self.cleanData.len)
         if stat != "percentile":
@@ -140,7 +140,7 @@ class PreProcess:
         return self
 
     def add_sklearn_robust_scaling(self, with_centering: bool = True, with_scaling: bool = True,
-                               quantile_range: tuple = (25.0, 75.0)):
+                                   quantile_range: tuple = (25.0, 75.0)):
         """Recommended to not do before splitting"""
         arr = robust_scale(X=self.cleanData.array(axis=1), with_centering=with_centering, with_scaling=with_scaling,
                            quantile_range=quantile_range)
@@ -203,7 +203,7 @@ class PreProcess:
             index = range(self.len)
 
         if len(index) != self.len:
-            raise AttributeError("List of index {} not equal to length of data {}.".format([len(index), self.len]))
+            raise AttributeError("List of index {} not equal to length of data {}.".format(len(index), self.len))
 
         if name is None and self.name is None:
             raise AttributeError("Need to pass a name.")

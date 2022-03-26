@@ -60,7 +60,7 @@ class Regressor:
         self.name = "REG_Lasso"
         return self
 
-    def add_lassoLars(self, alpha: float = 1.0):
+    def add_lassolars(self, alpha: float = 1.0):
         reg = LassoLars(alpha=alpha).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -68,7 +68,7 @@ class Regressor:
         self.name = "REG_LassoLars"
         return self
 
-    def add_elasticNet(self, alpha: float = 1.0):
+    def add_elasticnet(self, alpha: float = 1.0):
         reg = ElasticNet(alpha=alpha, random_state=0).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -76,7 +76,7 @@ class Regressor:
         self.name = "REG_ElasticNet"
         return self
 
-    def add_bayesRidge(self):
+    def add_bayesridge(self):
         reg = BayesianRidge().fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -84,7 +84,7 @@ class Regressor:
         self.name = "REG_BayesianRidge"
         return self
 
-    def add_ARD(self):
+    def add_ard(self):
         reg = ARDRegression().fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -92,7 +92,7 @@ class Regressor:
         self.name = "REG_ARDRegression"
         return self
 
-    def add_SGDregress(self):
+    def add_sgdregress(self):
         """Benefits from standardizing"""
         reg = SGDRegressor().fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_

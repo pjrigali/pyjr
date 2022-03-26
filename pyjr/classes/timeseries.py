@@ -10,6 +10,7 @@ Author:
 from dataclasses import dataclass
 from typing import Union
 import numpy as np
+import math
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from scipy import signal

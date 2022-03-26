@@ -26,20 +26,14 @@ class Data:
     :type data:
     :param name: Input data name.
     :type name: str.
-    :param index: Input data index.
-    :type index:
     :param na_handling: Desired Nan value handling method. {zero, mu, std, median}
     :type na_handling: str.
-    :param val_type: Desired type to fit data to.
-    :type val_type: str.
+    :param dtype: Desired type to fit data to.
+    :type dtype: str.
     :param cap_zero: Whether to cap the value at zero.
     :type cap_zero: bool.
     :param std_value: Desired Standard Deviation to use.
     :type std_value: int.
-    :param x: Whether the data is independent or not.
-    type x: bool.
-    :param y: Whether the data is dependent or not.
-    type y: bool.
     :param ddof: Desired Degrees of Freedom.
     :type ddof: int.
     :param q_lst: List of columns to find the Quantile. *Optional*
@@ -52,7 +46,7 @@ class Data:
     __slots__ = ("name", "data", "len", "unique", "dtype", "mean", "median", "mode", "var", "std", "lower", "higher",
                  "min", "max", "sum", "skew", "kurt", "per", "rang", "distribution", "na")
 
-    def __init__(self, data = None, name: str = None, index = None, na_handling: str = 'none',
+    def __init__(self, data = None, name: str = None, na_handling: str = 'none',
                  dtype: str = 'float', cap_zero: bool = True, std_value: int = 3, median_value: float = 0.023,
                  ddof: int = 1, q_lst: tuple = (0.159, 0.841), stats: bool = True,
                  distribution: bool = False, unique: bool = False):
@@ -107,7 +101,6 @@ class Data:
             if count == 0:
                 self.distribution['normal'] = True
 
-
     def add_percentile(self, q: float) -> float:
         self.per = _percentile(data=self.data, q=q)
         return self.per
@@ -139,7 +132,7 @@ class Data:
             index = range(self.len)
 
         if len(index) != self.len:
-            raise AttributeError("List of index {} not equal to length of data {}.".format([len(index), self.len]))
+            raise AttributeError("List of index {} not equal to length of data {}.".format(len(index), self.len))
 
         if name is None and self.name is None:
             raise AttributeError("Need to pass a name.")

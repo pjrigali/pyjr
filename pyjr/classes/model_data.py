@@ -52,7 +52,8 @@ class ModelingData:
             self.len = data.len
             self.x_data_names.append(data.name)
         else:
-            if _check_len(len1=self.len, len2=data.len) is True and _check_names(name=data.name, name_list=self.x_data_names) is True:
+            if _check_len(len1=self.len, len2=data.len) is True and _check_names(name=data.name,
+                                                                                 name_list=self.x_data_names) is True:
                 self.x_data_names.append(data.name)
                 if isinstance(data, Data):
                     self.x_data = _add_column(arr1=self.x_data, arr2=data.array(axis=1))
@@ -133,15 +134,16 @@ class ModelingData:
         self.x_data_names = ["pca_col_" + str(i) for i in range(pca.explained_variance_.size)]
         return pca.explained_variance_ratio_
 
-    def add_truncatedSVD(self, n_com: int = 2):
+    def add_truncatedsvd(self, n_com: int = 2):
         svd = TruncatedSVD(n_components=n_com)
         svd.fit_transform(self.x_data)
         self.x_data = svd.transform(self.x_data)
-        self.x_data_names = ["truncated_col_" + str(i) for i in range(pca.explained_variance_.size)]
+        self.x_data_names = ["truncated_col_" + str(i) for i in range(svd.explained_variance_.size)]
         return svd.explained_variance_ratio_
 
     def add_ohe_data(self, data: Data):
         unique = _unique_values(data=data.data, count=False)
         for ind in range(len(unique)):
-            self.add_xdata(data=Data(data=[1.0 if ind == val else 0.0 for val in data.data], name=str(unique[ind]) + "_ohe"))
+            self.add_xdata(data=Data(data=[1.0 if ind == val else 0.0 for val in data.data],
+                                     name=str(unique[ind]) + "_ohe"))
         return self

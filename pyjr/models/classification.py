@@ -8,6 +8,7 @@ Author:
  Peter Rigali - 2022-03-19
 """
 from dataclasses import dataclass
+from typing import Union
 from pyjr.classes.model_data import ModelingData
 from sklearn.linear_model import RidgeClassifier, SGDClassifier, LogisticRegression
 from sklearn import svm
@@ -40,31 +41,31 @@ class Classifier:
 
     def add_ridge(self):
         cls = RidgeClassifier().fit(X=self.data.x_train, y=self.data.y_train)
-        self.coef = reg.coef_
-        self.intercept = reg.intercept_
-        self.pred = reg.predict(X=self.data.x_test)
+        self.coef = cls.coef_
+        self.intercept = cls.intercept_
+        self.pred = cls.predict(X=self.data.x_test)
         self.name = "CLS_RidgeClassifier"
         return self
 
-    def add_SVC(self, kernel: str = 'rbf', gamma: str = 'scale'):
+    def add_svc(self, kernel: str = 'rbf', gamma: str = 'scale'):
         """Benefits from standardizing"""
         # {‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’}
         # {'scale', 'auto'}
         cls = svm.SVC(kernel=kernel, gamma=gamma).fit(X=self.data.x_train, y=self.data.y_train)
-        self.coef = reg.coef_
-        self.intercept = reg.intercept_
-        self.pred = reg.predict(X=self.data.x_test)
+        self.coef = cls.coef_
+        self.intercept = cls.intercept_
+        self.pred = cls.predict(X=self.data.x_test)
         self.name = "CLS_SVC"
         return self
 
-    def add_NuSVC(self, kernel: str = 'rbf', gamma: str = 'scale'):
+    def add_nusvc(self, kernel: str = 'rbf', gamma: str = 'scale'):
         """Benefits from standardizing"""
         # {‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’}
         # {'scale', 'auto'}
         cls = svm.NuSVC(kernel=kernel, gamma=gamma).fit(X=self.data.x_train, y=self.data.y_train)
-        self.coef = reg.coef_
-        self.intercept = reg.intercept_
-        self.pred = reg.predict(X=self.data.x_test)
+        self.coef = cls.coef_
+        self.intercept = cls.intercept_
+        self.pred = cls.predict(X=self.data.x_test)
         self.name = "CLS_NuSVC"
         return self
 
@@ -77,18 +78,18 @@ class Classifier:
         self.name = "CLS_LinearSVC"
         return self
 
-    def add_SGDclass(self, loss: str = 'hinge'):
+    def add_sgdclass(self, loss: str = 'hinge'):
         # The possible options are ‘hinge’, ‘log’, ‘modified_huber’, ‘squared_hinge’, ‘perceptron’, or a
         # regression loss: ‘squared_error’, ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’.
         """Benefits from standardizing"""
-        reg = SGDClassifier().fit(X=self.data.x_train, y=self.data.y_train)
+        reg = SGDClassifier(loss=loss).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
         self.pred = reg.predict(X=self.data.x_test)
         self.name = "CLS_SGDClassifier"
         return self
 
-    def add_knnClass(self, num: int = 5, weights: str = 'uniform'):
+    def add_knnclass(self, num: int = 5, weights: str = 'uniform'):
         reg = KNeighborsClassifier(n_neighbors=num, weights=weights).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -96,7 +97,7 @@ class Classifier:
         self.name = "CLS_KNeighborsClassifier"
         return self
 
-    def add_knnCentroid(self):
+    def add_knncentroid(self):
         reg = NearestCentroid().fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = reg.coef_
         self.intercept = reg.intercept_
@@ -165,7 +166,7 @@ class Classifier:
         return self
 
     # TimeSeries
-    def add_TSBF(self, random_state: int = 0):
+    def add_tsbf(self, random_state: int = 0):
         clf = TSBF(random_state=random_state).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = clf.feature_importance_
         self.pred = clf.pedict(X=self.data.x_test)
@@ -173,26 +174,30 @@ class Classifier:
         self.name = "CLS_TSBF"
         return self
 
-    def add_SAXVSM(self, window_size: Union[int, float] = 0.5, word_size: Union[int, float] = 0.5, n_bins: int = 4, stategy: str = "normal"):
-        # {'uniform': bins have identical widths, 'quantile': Same number of points., 'normal': Bin edges are from normal dist.}
-        clf = SAXVSM(window_size=window_size, word_size=word_size, n_bins=n_bins, strategy=stategy).fit(X=self.data.x_train, y=self.data.y_train)
+    def add_szxvsm(self, window_size: Union[int, float] = 0.5, word_size: Union[int, float] = 0.5, n_bins: int = 4,
+                   stategy: str = "normal"):
+        # {'uniform': bins have identical widths, 'quantile': Same number of points.,
+        # 'normal': Bin edges are from normal dist.}
+        clf = SAXVSM(window_size=window_size, word_size=word_size, n_bins=n_bins,
+                     strategy=stategy).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = None
         self.pred = clf.pedict(X=self.data.x_test)
         self.intercept = None
         self.name = "CLS_SAXVSM"
         return self
 
-    def add_BOSSVS(self, window_size: int = 4, word_size: int = 4, n_bins: int = 4):
-        clf = BOSSVS(window_size=window_size, word_size=word_size, n_bins=n_bins, strategy=stategy).fit(X=self.data.x_train, y=self.data.y_train)
+    def add_bossvs(self, window_size: int = 4, word_size: int = 4, n_bins: int = 4):
+        clf = BOSSVS(window_size=window_size, word_size=word_size, n_bins=n_bins).fit(X=self.data.x_train,
+                                                                                      y=self.data.y_train)
         self.coef = None
         self.pred = clf.pedict(X=self.data.x_test)
         self.intercept = None
         self.name = "CLS_BOSSVS"
         return self
 
-    def add_MC(self, esitmator = BOSSVS()):
+    def add_mc(self, estimator=BOSSVS()):
         # {estimator object or list of}
-        clf = MultivariateClassifier(estimator=esitmator).fit(X=self.data.x_train, y=self.data.y_train)
+        clf = MultivariateClassifier(estimator=estimator).fit(X=self.data.x_train, y=self.data.y_train)
         self.coef = None
         self.pred = clf.pedict(X=self.data.x_test)
         self.intercept = None
@@ -205,6 +210,6 @@ class Classifier:
                        "f1": f1_score(y_true=self.data.y_test, y_pred=self.pred),
                        "recall": recall_score(y_true=self.data.y_test, y_pred=self.pred),
                        "precision": precision_score(y_true=self.data.y_test, y_pred=self.pred),
-                       "roc_auc": recall_score(y_true=self.data.y_test, y_pred=self.pred),
+                       "roc_auc": roc_auc_score(y_true=self.data.y_test, y_score=self.pred),
                        "conf_matrix": confusion_matrix(y_true=self.data.y_test, y_pred=self.pred)}
         return self

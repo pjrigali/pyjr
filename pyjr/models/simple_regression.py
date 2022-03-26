@@ -30,7 +30,7 @@ class Regression:
     :note: This will return a Regression object with regression result information.
 
     """
-    __slots__ = ("results")
+    __slots__ = "results"
 
     def __init__(self, x_data: Union[Data, PreProcess], y_data: Union[Data, PreProcess]):
         if x_data.len != y_data.len:
