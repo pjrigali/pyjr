@@ -1,7 +1,7 @@
 import os
 from setuptools import setup
 
-current_path = os.path.abspath('C:\\Users\\Peter\\Desktop\\Personal\\11_Repository\\Helper Functions\\')
+current_path = os.path.abspath('C:\\Users\\Peter\\Desktop\\Personal\\11_Repository\\pyjr\\')
 
 
 def read_file(*parts):

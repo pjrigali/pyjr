@@ -25,3 +25,5 @@ The package can be accessed via pip install.
 ### Changelog
 * 0.0.1 - *Initial Release*
   * This serves as a quick release to utilize the basic functionality.
+* 0.0.2 - *Working Release*
+  * This release has passed a cursory review. 
