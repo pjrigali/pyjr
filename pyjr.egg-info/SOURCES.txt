@@ -1,8 +1,0 @@
-README.md
-pyproject.toml
-setup.py
-pyjr/__init__.py
-pyjr.egg-info/PKG-INFO
-pyjr.egg-info/SOURCES.txt
-pyjr.egg-info/dependency_links.txt
-pyjr.egg-info/top_level.txt
