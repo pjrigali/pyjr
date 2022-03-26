@@ -8,10 +8,12 @@ Author:
  Peter Rigali - 2022-03-19
 """
 from dataclasses import dataclass
+import statsmodels.api as sm
 from typing import Union, Optional
 from pandas import Series
 import numpy as np
-from pyjr.utils.tools import _prep, _unique_values, _to_type, _replace_na, _replacement_value
+from pyjr.utils.base import _percentile, _mean, _variance, _sum
+from pyjr.utils.tools import _prep, _unique_values, _to_type, _replace_na, _replacement_value, _dis, _cent, stack, _to_metatype
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 
@@ -23,7 +25,7 @@ def _clean(data, dtype, na):
         na = _replacement_value(data=data, na_handling=na)
     data = _replace_na(data=data, replacement_value=na)
     if dtype is None:
-        dtype = np.min_scalar_type(data_n).type
+        dtype = np.min_scalar_type(data).type
     else:
         type_tup = (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64, np.float16,
                     np.float32, np.float64, np.float_, np.str_, np.int_)
@@ -52,7 +54,7 @@ def _one_hot_encode(func):
 
 
 @_one_hot_encode
-def oneHotEncode(data: list, dtype: str = "str_", na: str = None) -> np.ndarray:
+def oneHotEncode(data: list, dtype: str = "str_", na: str = None):
     """One hot encode a list of data"""
     return (data, dtype, na)
 
@@ -88,7 +90,7 @@ def calc_gini(data: Union[list, np.ndarray, Series],
     return _to_type(value=(fair_area - area) / fair_area, dtype=dtype)
 
 
-def outlier_std(self, data, plus: bool = True, std_value: int = 2, return_ind: bool = False) -> np.ndarray:
+def outlier_std(data, plus: bool = True, std_value: int = 2, return_ind: bool = False) -> np.ndarray:
     """
 
     Calculate Outliers using a simple std value.
@@ -109,6 +111,7 @@ def outlier_std(self, data, plus: bool = True, std_value: int = 2, return_ind: b
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     new_data = np.array(data.data)
     if data.min >= 0:
         if plus:
@@ -149,6 +152,7 @@ def outlier_var(data: Data, plus: Optional[bool] = True, std_value: int = 2,
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     lst = data.data.copy()
     temp_var = _variance(data=lst, ddof=data.inputs['ddof'])
     dev_based = np.array([temp_var - _variance(np.delete(lst, i), ddof=data.inputs['ddof']) for i, j in enumerate(lst)])
@@ -190,6 +194,7 @@ def outlier_regression(x_data: Data, y_data: Data, plus: Optional[bool] = True, 
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     arr = stack(np.array(x_data.data), np.array(y_data.data), False)
     ran = np.array(range(x_data.len))
     mu_y = np.zeros(len(arr) - 1)
@@ -239,6 +244,7 @@ def outlier_distance(x_data: Data, y_data: Data, plus: Optional[bool] = True, st
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     arr = stack(np.array(x_data.data), np.array(y_data.data), False)
     cent_other = _cent(arr[:, 0], arr[:, 1])
     ran = range(0, x_data.len)
@@ -278,6 +284,7 @@ def outlier_hist(data: Data, plus: Optional[bool] = True, std_value: int = 2, re
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     arr = np.array(data.data)
     n, b = np.histogram(arr, bins='sturges')
 
@@ -329,6 +336,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
     :note: If **arr** not passed, data and respective column names are required.
 
     """
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     arr = stack(np.array(x_data.data), np.array(y_data.data), False)
     ran = range(0, x_data.len)
     test_centers = (_cent([arr[ind, 0]], [arr[ind, 1]]) for ind in ran)
@@ -348,7 +356,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
             count_dic[i] = _sum([1 for i in temp if i == True])
 
     lst = []
-    for val in _check_list(data=count_dic.values()):
+    for val in _to_metatype(data=count_dic.values()):
         if isinstance(val, list):
             for val1 in val:
                 lst.append(val1)
@@ -369,6 +377,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
 
 
 def outlier_cooks_distance(x_data: Data, y_data: Data, plus: bool = True, std_value: int = 2, return_ind: bool = False):
+    per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     x = sm.add_constant(data=x_data.data)
     y = y_data.data
     model = sm.OLS(y, x).fit()
