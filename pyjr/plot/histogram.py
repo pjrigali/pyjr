@@ -8,11 +8,15 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
+from pyjr.classes.data import Data
+from pyjr.classes.preprocess_data import PreProcess
+from pyjr.utils.tools import _to_metatype
+from pyjr.utils.base import _mean, _std
 
 
 def insert_every(L, char, every):
@@ -101,10 +105,10 @@ class Histogram:
     __slots__ = ("ax", "ax1")
 
     def __init__(self,
-                 data: pd.DataFrame,
-                 color_lst: Optional[List[str]] = None,
-                 label_lst: Optional[List[str]] = None,
-                 limit: Optional[int] = None,
+                 data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
+                 color_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 limit: Optional[Union[List[int], Tuple[int]]] = None,
                  include_norm: Optional[str] = None,
                  norm_color: Optional[str] = 'r',
                  norm_lineweight: Optional[float] = 1.0,
@@ -132,32 +136,48 @@ class Histogram:
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
                  ):
+        # Parse input data
+        if isinstance(data, (Data, PreProcess)):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.name, dtype='list')
+            data = data.dataframe()
+        elif isinstance(data, pd.DataFrame):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.columns, dtype='list')
+        elif isinstance(data, list):
+            dic = {}
+            for d in data:
+                if isinstance(d.name, (list, tuple)):
+                    for ind, val in enumerate(d.name):
+                        dic[val.name] = val.data[:, ind]
+                else:
+                    dic[d.name] = d.data
+            data = pd.DataFrame.from_dict(dic)
+            label_lst = _to_metatype(data=data.columns, dtype='list')
 
-        if label_lst is None:
-            label_lst = list(data.columns)
-
+        # Get colors
         if color_lst is None:
-            n = len(label_lst)
-            if n == 1:
-                color_lst = ['tab:orange']
-                norm_color = 'tab:blue'
+            if label_lst.__len__() <= 3:
+                color_lst = ['tab:orange', 'tab:blue', 'tab:green'][:label_lst.__len__()]
             else:
-                color_lst = [plt.get_cmap('viridis')(1. * i / n) for i in range(n)]
+                color_lst = [plt.get_cmap('viridis')(1. * i / label_lst.__len__()) for i in range(label_lst.__len__())]
 
+        # Start plot
         fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
-            data = data[:limit]
+            data = data[limit[0]:limit[1]]
 
+        # Get plots
         count = 0
         for ind in label_lst:
             ax.hist(data[ind], bins=bins, color=color_lst[count], label=ind, stacked=stacked, histtype=hist_type)
             count += 1
-
         ax.set_ylabel(ylabel, color=ylabel_color, fontsize=ylabel_size)
         ax.tick_params(axis='y', labelcolor=ylabel_color, rotation=ytick_rotation)
         ax.set_title(title, fontsize=title_size)
 
+        # Add grid
         if grid:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
 
@@ -165,16 +185,16 @@ class Histogram:
         ax.tick_params(axis='x', labelcolor=ylabel_color, rotation=xtick_rotation)
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
 
+        # Plot normal curve
         ax1 = None
         if include_norm:
-            d = data[include_norm]
-            norm_data = np.random.normal(np.mean(d), np.std(d, ddof=1), len(d))
-            _mu, _std = norm.fit(norm_data)
+            d = _to_metatype(data=data[include_norm], dtype='list')
+            _mu, _s = norm.fit(np.random.normal(_mean(data=d), _std(data=d), d.__len__()))
             xmin, xmax = plt.xlim()
             x = np.linspace(xmin, xmax, 100)
             ax1 = ax.twinx()
-            ax1.plot(x, norm.pdf(x, _mu, _std), color=norm_color, linewidth=norm_lineweight, linestyle='--',
-                     label="Fit Values: mu {:.2f} and std {:.2f}".format(_mu, _std))
+            ax1.plot(x, norm.pdf(x, _mu, _s), color=norm_color, linewidth=norm_lineweight, linestyle='--',
+                     label="{} Fit Values: mu {:.2f} and std {:.2f}".format(include_norm, _mu, _s))
             ax1.set_ylabel(norm_ylabel, color=norm_color)
             ax1.tick_params(axis='y', labelcolor=norm_color)
             ax1.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=norm_legend_location, frameon=True)

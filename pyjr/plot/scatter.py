@@ -8,10 +8,14 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from scipy import stats
+from pyjr.classes.data import Data
+from pyjr.classes.preprocess_data import PreProcess
+from pyjr.utils.tools import _to_metatype
 
 
 def insert_every(L, char, every):
@@ -40,20 +44,12 @@ class Scatter:
     :type label_lst: List[str]
     :param color_lst: List of colors to graph, needs to be same length as label_lst. *Optional*
     :type color_lst: List[str]
-    :param normalize_x: List of columns to normalize. *Optional*
-    :type normalize_x: List[str]
     :param regression_line:  If included, requires a column str or List[str], default = None. *Optional*
     :type regression_line: List[str]
     :param regression_line_color: Color of regression line, default = 'red'. *Optional*
     :type regression_line_color: str
     :param regression_line_lineweight: Regression lineweight, default = 2.0. *Optional*
     :type regression_line_lineweight: float
-    :param running_mean_x: List of columns to calculate running mean. *Optional*
-    :type running_mean_x: List[str]
-    :param running_mean_value: List of columns to calculate running mean. *Optional*
-    :type running_mean_value: Optional[int] = 50,
-    :param cumulative_mean_x: List of columns to calculate cumulative mean. *Optional*
-    :type cumulative_mean_x: List[str]
     :param fig_size: default = (10, 7), *Optional*
     :type fig_size: tuple
     :param ylabel: Y axis label. *Optional*
@@ -95,20 +91,16 @@ class Scatter:
 
     """
 
-    __slots__ = ("ax")
+    __slots__ = "ax"
 
     def __init__(self,
-                 data: pd.DataFrame,
-                 limit: Optional[int] = None,
-                 label_lst: Optional[List[str]] = None,
-                 color_lst: Optional[List[str]] = None,
-                 normalize_x: Optional[List[str]] = None,
-                 regression_line: Optional[List[str]] = None,
-                 regression_line_color: Optional[str] = 'r',
+                 data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
+                 limit: Optional[Union[List[int], Tuple[int]]] = None,
+                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 color_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 regression_line: Union[List[str], Tuple[str]] = None,
+                 regression_line_color: Optional[str] = None,
                  regression_line_lineweight: Optional[float] = 2.0,
-                 running_mean_x: Optional[List[str]] = None,
-                 running_mean_value: Optional[int] = 50,
-                 cumulative_mean_x: Optional[List[str]] = None,
                  fig_size: Optional[tuple] = (10, 7),
                  ylabel: Optional[str] = None,
                  ylabel_color: Optional[str] = 'black',
@@ -125,63 +117,98 @@ class Scatter:
                  legend_fontsize: Optional[str] = 'medium',
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
-                 compare_two: Optional[List[str]] = None,
-                 y_limit: Optional[List[float]] = None
+                 compare_two: Union[Tuple[str], bool] = None,
+                 y_limit: Optional[Union[list, tuple]] = None
                  ):
+        # Parse input data
+        if isinstance(data, (Data, PreProcess)):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.name, dtype='list')
+            data = data.dataframe()
+        elif isinstance(data, pd.DataFrame):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.columns, dtype='list')
+        elif isinstance(data, list):
+            dic = {}
+            for d in data:
+                if isinstance(d.name, (list, tuple)):
+                    for ind, val in enumerate(d.name):
+                        dic[val.name] = val.data[:, ind]
+                else:
+                    dic[d.name] = d.data
+            data = pd.DataFrame.from_dict(dic)
+            label_lst = _to_metatype(data=data.columns, dtype='list')
 
-        if label_lst is None:
-            label_lst = list(data.columns)
-
+        # Get colors
         if color_lst is None:
-            n = len(label_lst)
-            if n == 1:
-                color_lst = ['tab:orange']
-                regression_line_color = 'tab:blue'
+            if label_lst.__len__() <= 3:
+                color_lst = ['tab:orange', 'tab:blue', 'tab:green'][:label_lst.__len__()]
             else:
-                color_lst = [plt.get_cmap('viridis')(1. * i / n) for i in range(n)]
+                color_lst = [plt.get_cmap('viridis')(1. * i / label_lst.__len__()) for i in range(label_lst.__len__())]
 
+        if regression_line_color is None:
+            regression_line_color = 'r'
+
+        # Start plot
         fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
-            data = data[:limit]
+            data = data[limit[0]:limit[1]]
 
-        x_axis = range(len(data))
+        # Get compare two
+        if compare_two is True:
+            if _to_metatype(data=data.columns, dtype='tuple').__len__() >= 2:
+                if ylabel is None:
+                    ylabel = label_lst[1]
+                if xlabel is None:
+                    xlabel = label_lst[0]
+                x_axis = data[label_lst[0]]
+                label_lst = [label_lst[1]]
+            else:
+                raise AttributeError("If compare_two is True, input data requires two columns of data.")
+        elif isinstance(compare_two, (list, tuple)):
+            if compare_two.__len__() == 2:
+                label_lst = [compare_two[1]]
+                x_axis = data[compare_two[0]]
+                if ylabel is None:
+                    ylabel = compare_two[1]
+                if xlabel is None:
+                    xlabel = compare_two[0]
+            else:
+                raise AttributeError("If compare_two is a list, input data requires two columns of data.")
+        else:
+            x_axis = range(len(data))
+            if ylabel is None:
+                ylabel = 'Values'
+            if xlabel is None:
+                xlabel = 'Index'
 
-        if compare_two:
-            label_lst = [compare_two[1]]
-            x_axis = data[compare_two[0]]
-
+        # Get plots
         count = 0
         for ind in label_lst:
             d = data[ind]
-
             ax.scatter(x=x_axis, y=d, color=color_lst[count], label=ind)
-
-            if ind in regression_line:
+            if regression_line is not None and ind in regression_line:
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x_axis, d)
-
-                if len(label_lst) == 1:
-                    c = regression_line_color
-                else:
-                    c = color_lst[count]
-
-                ax.plot(x_axis, intercept + slope * x_axis, color=c, label=ind+'_ols_'+str(round(slope, 2)),
-                        linestyle='--', linewidth=regression_line_lineweight)
+                ax.plot(x_axis, intercept + slope * x_axis, color=regression_line_color,
+                        label=ind+'_ols_'+str(round(slope, 2)), linestyle='--', linewidth=regression_line_lineweight)
             count += 1
-
         ax.set_ylabel(ylabel, color=ylabel_color, fontsize=ylabel_size)
         ax.tick_params(axis='y', labelcolor=ylabel_color)
         ax.set_title(title, fontsize=title_size)
 
+        # Add grid
         if grid:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
 
         ax.set_xlabel(xlabel, color=xlabel_color, fontsize=xlabel_size)
-        ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
+
+        # Add legend
+        if compare_two is None:
+            ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
 
         if y_limit:
             ax.set_ylim(bottom=y_limit[0], top=y_limit[1])
-
         self.ax = ax
 
     def __repr__(self):

@@ -8,10 +8,13 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from pyjr.classes.data import Data
+from pyjr.classes.preprocess_data import PreProcess
+from pyjr.utils.tools import _to_metatype
 
 
 def insert_every(L, char, every):
@@ -40,14 +43,6 @@ class Line:
     :type label_lst: List[str]
     :param color_lst: List of colors to graph, needs to be same length as label_lst. *Optional*
     :type color_lst: List[str]
-    :param normalize_x: List of columns to normalize. *Optional*
-    :type normalize_x: List[str]
-    :param running_mean_x: List of columns to calculate running mean. *Optional*
-    :type running_mean_x: List[str]
-    :param running_mean_value: Value used when calculating running mean, default = 50. *Optional*
-    :type running_mean_value: int
-    :param cumulative_mean_x: List of columns to calculate cumulative mean. *Optional*
-    :type cumulative_mean_x: List[str]
     :param fig_size: Figure size, default = (10, 7). *Optional*
     :type fig_size: tuple
     :param ylabel: Y axis label. *Optional*
@@ -85,17 +80,13 @@ class Line:
 
     """
 
-    __slots__ = ("ax")
+    __slots__ = "ax"
 
     def __init__(self,
-                 data: pd.DataFrame,
-                 limit: Optional[int] = None,
-                 label_lst: Optional[List[str]] = None,
-                 color_lst: Optional[List[str]] = None,
-                 normalize_x: Optional[List[str]] = None,
-                 running_mean_x: Optional[List[str]] = None,
-                 running_mean_value: Optional[int] = 50,
-                 cumulative_mean_x: Optional[List[str]] = None,
+                 data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
+                 limit: Optional[Union[List[int], Tuple[int]]] = None,
+                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 color_lst: Optional[Union[List[str], Tuple[str]]] = None,
                  fig_size: Optional[tuple] = (10, 7),
                  ylabel: Optional[str] = None,
                  ylabel_color: Optional[str] = 'black',
@@ -113,35 +104,51 @@ class Line:
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
                  ):
+        # Parse input data
+        if isinstance(data, (Data, PreProcess)):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.name, dtype='list')
+            data = data.dataframe()
+        elif isinstance(data, pd.DataFrame):
+            if label_lst is None:
+                label_lst = _to_metatype(data=data.columns, dtype='list')
+        elif isinstance(data, list):
+            dic = {}
+            for d in data:
+                if isinstance(d.name, (list, tuple)):
+                    for ind, val in enumerate(d.name):
+                        dic[val.name] = val.data[:, ind]
+                else:
+                    dic[d.name] = d.data
+            data = pd.DataFrame.from_dict(dic)
+            label_lst = _to_metatype(data=data.columns, dtype='list')
 
-        if label_lst is None:
-            label_lst = list(data.columns)
-
+        # Get colors
         if color_lst is None:
-            n = len(label_lst)
-            if n == 1:
-                color_lst = ['tab:orange']
+            if label_lst.__len__() <= 3:
+                color_lst = ['tab:orange', 'tab:blue', 'tab:green'][:label_lst.__len__()]
             else:
-                color_lst = [plt.get_cmap('viridis')(1. * i / n) for i in range(n)]
+                color_lst = [plt.get_cmap('viridis')(1. * i / label_lst.__len__()) for i in range(label_lst.__len__())]
 
+        # Start Plot
         fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
-            data = data[:limit]
+            data = data[limit[0]:limit[1]]
 
+        # Get plots
         count = 0
-        for ind in label_lst:
-            d = data[ind]
-            ax.plot(d, color=color_lst[count], label=ind)
+        for name in label_lst:
+            d = data[name]
+            ax.plot(d, color=color_lst[count], label=name)
             count += 1
-
         ax.set_ylabel(ylabel, color=ylabel_color, fontsize=ylabel_size)
         ax.tick_params(axis='y', labelcolor=ylabel_color)
         ax.set_title(title, fontsize=title_size)
 
+        # Add grid
         if grid:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
-
         ax.set_xlabel(xlabel, color=xlabel_color, fontsize=xlabel_size)
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
         self.ax = ax
