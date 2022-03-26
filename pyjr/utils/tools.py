@@ -13,6 +13,70 @@ from collections.abc import KeysView, ValuesView
 from pandas import Series, DataFrame
 
 
+# Repeat functions
+def _mean_(data: Union[list, tuple]) -> float:
+    """
+    Find the mean value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :return: Mean value.
+    :rtype: float.
+    :note: *None*
+    """
+    return sum(data) / data.__len__()
+
+
+def _variance_(data: Union[list, tuple], ddof: int = 1) -> float:
+    """
+    Find the variance value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param ddof: Desired Degrees of Freedom.
+    :type ddof: int
+    :return: Variance value.
+    :rtype: float.
+    :note: *None*
+    """
+    mu = _mean_(data=data)
+    return sum(((x - mu) ** 2 for x in data)) / (data.__len__() - ddof)
+
+
+def _std_(data: list, ddof: int = 1) -> float:
+    """
+    Find the Standard Deviation value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param ddof: Desired Degrees of Freedom.
+    :type ddof: int
+    :return: Standard Deviation value.
+    :rtype: float.
+    :note: *None*
+    """
+    return _variance_(data=data, ddof=ddof) ** .5
+
+
+def _percentile_(data: Union[list, tuple], q: float) -> float:
+    """
+    Find the percentile value of a list.
+
+    :param data: Input data.
+    :type data: list.
+    :param q: Percentile percent.
+    :type q: float.
+    :return: Percentile value.
+    :note: *None*
+    """
+    data = _round_to(data=[item * 1000.0 for item in data], val=1)
+    ind = _round_to(data=data.__len__() * q, val=1)
+    data.sort()
+    for item in data:
+        if item >= data[ind]:
+            return item / 1000.0
+
+
 # Cleaning Functions.
 def _empty(data) -> bool:
     """Checks if data is empty"""
@@ -77,12 +141,13 @@ def _check_na(value) -> bool:
         return True
 
 
-def _remove_nan(data: list) -> list:
+def _remove_nan(data: Union[list, tuple]) -> list:
     """Remove Nan values from a list"""
     return [val for val in data if _check_na(val) is False]
 
 
-def _round_to(data: Union[list, Series, np.ndarray, float, int], val: float, remainder: bool = False) -> Union[list, float]:
+def _round_to(data: Union[list, Series, np.ndarray, float, int], val: float,
+              remainder: bool = False) -> Union[list, float]:
     """
     Rounds a value or list.
 
@@ -110,7 +175,7 @@ def _round_to(data: Union[list, Series, np.ndarray, float, int], val: float, rem
 
 
 def _replacement_value(data: list, na_handling: str = 'median', std_value: int = 3, cap_zero: bool = True,
-                       median_value: float = 0.023, ddof: int = 1) -> float:
+                       median_value: float = 0.023, ddof: int = 1) -> Union[float, None]:
     """
     Calculate desired replacement for Nan values.
 
@@ -118,22 +183,22 @@ def _replacement_value(data: list, na_handling: str = 'median', std_value: int =
     :type data: list.
     :param na_handling: Desired Nan value handling method. {zero, mu, std, median}
     :type na_handling: str.
-    :param std_val: Desired Standard Deviation to use.
-    :type std_val: int.
+    :param std_value: Desired Standard Deviation to use.
+    :type std_value: int.
     :param cap_zero: Whether to cap the value at zero.
     :type cap_zero: bool.
-    :param median_val: Desired percentile to use.
-    :type median_val: float.
+    :param median_value: Desired percentile to use.
+    :type median_value: float.
     :return: Replacement value.
     :note: If mean - 3 * std is less than 0, may confuse results.
     """
     if na_handling == 'zero':
         return 0.0
     elif na_handling == 'mu':
-        return _mean(data=_remove_nan(data=data))
+        return _mean_(data=_remove_nan(data=data))
     elif na_handling == 'std':
         data = _remove_nan(data=data)
-        val = _mean(data=data) - (_std(data=data, ddof=ddof) * std_value)
+        val = _mean_(data=data) - (_std_(data=data, ddof=ddof) * std_value)
         if cap_zero:
             if val > 0:
                 return val
@@ -142,12 +207,12 @@ def _replacement_value(data: list, na_handling: str = 'median', std_value: int =
         else:
             return val
     elif na_handling == 'median':
-        return _percentile(data=_remove_nan(data=data), q=median_value)
+        return _percentile_(data=_remove_nan(data=data), q=median_value)
     elif na_handling == 'none':
         return None
 
 
-def _replace_na(data: list, replacement_value: float = None) -> tuple:
+def _replace_na(data: Union[list, tuple], replacement_value: float = None) -> Union[list, tuple]:
     """Replace Nan values with replacement value"""
     if replacement_value is None:
         return _remove_nan(data=data)
@@ -167,8 +232,8 @@ def _replace_na(data: list, replacement_value: float = None) -> tuple:
 #         return None
 
 
-def _prep(data, meta_type: str = 'tuple', dtype: str = 'float', na_handling: str = 'zero', std_value: int = 3, median_value: float = 0.023,
-          cap_zero: bool = True, ddof: int = 1):
+def _prep(data, meta_type: str = 'tuple', dtype: str = 'float', na_handling: str = 'zero', std_value: int = 3,
+          median_value: float = 0.023, cap_zero: bool = True, ddof: int = 1):
     """Clean data"""
     # Check Empty
     if _empty(data=data):
@@ -246,7 +311,7 @@ def _check_len(len1, len2) -> bool:
     if len1 == len2:
         return True
     else:
-        raise AttributeError("(len1: {} ,len2: {} ) Lengths are not the same.".format((len1, len2)))
+        raise AttributeError("(len1: {} ,len2: {} ) Lengths are not the same.".format(len1, len2))
 
 
 def _add_column(arr1, arr2) -> np.ndarray:
@@ -284,7 +349,7 @@ def _dis(cent1: List[float], cent2: List[float]) -> float:
     :param cent1: An x, y coordinate representing a centroid.
     :type cent1: List[float]
     :param cent2: An x, y coordinate representing a centroid.
-    :type y_lst: List[float]
+    :type cent2: List[float]
     :returns: A distance measurement.
     :rtype: float
     :example: *None*
@@ -292,6 +357,7 @@ def _dis(cent1: List[float], cent2: List[float]) -> float:
 
     """
     return round(np.sqrt((cent1[0] - cent2[0]) ** 2 + (cent1[1] - cent2[1]) ** 2), 4)
+
 
 def stack(x_arr: np.ndarray, y_arr: np.ndarray, multi: Optional[bool] = False) -> np.ndarray:
     """
@@ -302,7 +368,7 @@ def stack(x_arr: np.ndarray, y_arr: np.ndarray, multi: Optional[bool] = False) -
     :type x_arr: np.ndarray
     :param y_arr: An array to stack.
     :type y_arr: np.ndarray
-    :param mutli: If True, will stack based on multiple x_arr columns, default is False. *Optional*
+    :param multi: If True, will stack based on multiple x_arr columns, default is False. *Optional*
     :type multi: bool
     :return: Array with a x column and a y column
     :rtype: np.ndarray
