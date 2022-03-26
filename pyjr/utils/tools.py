@@ -22,7 +22,7 @@ def _empty(data) -> bool:
         return False
 
 
-def _to_metatype(data, dtype: str = 'list') -> list:
+def _to_metatype(data, dtype: str = 'list') -> Union[list, tuple]:
     """Converts list-adjacent objects to a list or tuple"""
     if dtype not in {'list': True, 'tuple': True}:
         raise AttributeError("dtype input must be either {list, tuple}.")
@@ -44,7 +44,7 @@ def _to_metatype(data, dtype: str = 'list') -> list:
         if dtype == 'list':
             return [data]
         else:
-            return (data, )
+            return tuple(data)
     else:
         raise AttributeError('Input data needs to have a type of {np.ndarray, pd.Series, list, set, int, float, str, object}')
 
@@ -167,7 +167,8 @@ def _replace_na(data: list, replacement_value: float = None) -> tuple:
 #         return None
 
 
-def _prep(data, meta_type: str = 'tuple', dtype: str = 'float', na_handling: str = 'zero'):
+def _prep(data, meta_type: str = 'tuple', dtype: str = 'float', na_handling: str = 'zero', std_value: int = 3, median_value: float = 0.023,
+          cap_zero: bool = True, ddof: int = 1):
     """Clean data"""
     # Check Empty
     if _empty(data=data):

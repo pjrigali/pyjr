@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     from pyjr.classes.model_data import ModelingData
     model_data = ModelingData()
-    model_data.add_multiple_xdata(data=(t, tt, tttt)).add_ydata(data=ttt).add_ohe(data=ohe)
+    model_data.add_multiple_xdata(data=(t, tt, tttt)).add_ydata(data=ttt).add_ohe_data(data=ohe)
     # explained = model_data.add_pca()
 
     x_train, x_test, x_valid, y_train, y_test, y_valid = model_data.add_train_test_validate(train=0.70, test=0.20, valid=0.10)
