@@ -141,5 +141,9 @@ class Data:
                 name = self.name
         return DataFrame(self.data, columns=[name], index=index)
 
+    def dict(self) -> dict:
+        """Returns a dict"""
+        return {self.name: self.data}
+
     def __repr__(self):
         return 'CleanData'

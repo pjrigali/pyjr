@@ -212,5 +212,12 @@ class PreProcess:
                 name = self.name
         return DataFrame(self.data, columns=[name], index=index)
 
+    def dict(self) -> dict:
+        """Returns a dict"""
+        if isinstance(self.data, np.ndarray):
+            return {self.name[ind]: self.data[:, ind] for ind, val in enumerate(self.data)}
+        else:
+            return {self.name: self.data}
+
     def __repr__(self):
         return 'PreProcessData'
