@@ -10,6 +10,8 @@ Author:
 from typing import Union, List, Optional
 import numpy as np
 from collections.abc import KeysView, ValuesView
+
+import pandas as pd
 from pandas import Series, DataFrame
 
 
@@ -97,12 +99,12 @@ def _to_metatype(data, dtype: str = 'list') -> Union[list, tuple]:
             return data.to_list()
         else:
             return tuple(data.to_list())
-    elif isinstance(data, (np.ndarray, DataFrame)):
+    elif isinstance(data, np.ndarray):
         if dtype == 'list':
             return data.tolist()
         else:
             return tuple(data.tolist())
-    elif isinstance(data, (set, KeysView, ValuesView)):
+    elif isinstance(data, (set, KeysView, ValuesView, pd.Index)):
         return {'list': list, 'tuple': tuple}[dtype](data)
     elif isinstance(data, (int, float, str, object, np.int_, np.float_, np.str, np.object)):
         if dtype == 'list':
