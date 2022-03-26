@@ -3,9 +3,11 @@ from setuptools import setup
 
 current_path = os.path.abspath('C:\\Users\\Peter\\Desktop\\Personal\\11_Repository\\Helper Functions\\')
 
+
 def read_file(*parts):
     with open(os.path.join(current_path, *parts), encoding='utf-8') as reader:
         return reader.read()
+
 
 setup(
     name='pyjr',
