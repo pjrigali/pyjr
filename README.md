@@ -16,7 +16,7 @@ The package can be accessed via pip install.
     pip install pyjr
 
 ### Future Work
-* Plot classes have not been vetted.
+* Plot classes have not been vetted. (All plots, besides barchart, are functional)
 * Documentation of classes and functions.
 * Update to TimeSeries, Tuning and Features.
 * Test all model classes and functions.
@@ -27,3 +27,5 @@ The package can be accessed via pip install.
   * This serves as a quick release to utilize the basic functionality.
 * 0.0.2 - *Working Release*
   * This release has passed a cursory review. 
+* 0.0.3 - *Plot Release*
+  * This release adds improved plotting capabilities.

@@ -8,10 +8,17 @@ Author:
  Peter Rigali - 2022-03-10
 """
 import pandas as pd
+import numpy as np
 import random
 pd.set_option('display.max_columns', None)
 pd.set_option('use_inf_as_na', True)
 import pyjr.utils.simple as jr
+from pyjr.plot.line import Line
+from pyjr.plot.scatter import Scatter
+from pyjr.plot.histogram import Histogram
+from pyjr.plot.table import Table
+
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
@@ -31,6 +38,19 @@ if __name__ == '__main__':
 
     from pyjr.classes.preprocess_data import PreProcess
     tttt = PreProcess(data=t).add_standardize(stat="mean")
+    ttttt = PreProcess(data=t).add_normalize(stat="mean")
+
+    # Line(data=[t, tttt, ttttt], limit=(0, 100))
+    # plt.show()
+
+    # Scatter(data=[t, tttt, ttttt], limit=(0, 100), compare_two=True)
+    # plt.show()
+
+    # Histogram(data=[t, tttt, ttttt], limit=(0, 100), include_norm='Test Data')
+    # plt.show()
+
+    Table(data=[t, tttt, ttttt], limit=(0, 50))
+    plt.show()
 
     from pyjr.classes.model_data import ModelingData
     model_data = ModelingData()
