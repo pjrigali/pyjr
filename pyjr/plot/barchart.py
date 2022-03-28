@@ -35,7 +35,7 @@ class Bar:
     __slots__ = "ax"
 
     def __init__(self,
-                 data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
+                 data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]], dict],
                  value_string: str = 'sum',
                  label_lst: Optional[Union[List[str], Tuple[str]]] = None,
                  vert_hor: bool = True,
@@ -57,6 +57,7 @@ class Bar:
                  grid_dash_sequence: tuple = (1, 3),
                  fig_size: Optional[tuple] = (10, 7)):
         # Parse input data
+        dic = False
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
                 label_lst = _to_metatype(data=data.name, dtype='list')
@@ -74,23 +75,27 @@ class Bar:
                     dic[d.name] = d.data
             data = pd.DataFrame.from_dict(dic)
             label_lst = _to_metatype(data=data.columns, dtype='list')
+        elif isinstance(data, dict):
+            value_lst = _to_metatype(data=data.values(), dtype='list')
+            label_lst = _to_metatype(data=data.keys(), dtype='list')
+            dic = True
 
-        if limit:
-            data = data[limit[0]:limit[1]]
-
-        # Get values
-        value_lst = []
-        for key in label_lst:
-            val = _to_metatype(data=data[key], dtype='list')
-            if value_string == 'sum':
-                val = _sum(data=val)
-            elif value_string == 'mean':
-                val = _mean(data=val)
-            elif value_string == 'median':
-                val = _median(data=val)
-            elif value_string == 'std':
-                val = _std(data=val)
-            value_lst.append(val)
+        if dic is False:
+            if limit:
+                data = data[limit[0]:limit[1]]
+            # Get values
+            value_lst = []
+            for key in label_lst:
+                val = _to_metatype(data=data[key], dtype='list')
+                if value_string == 'sum':
+                    val = _sum(data=val)
+                elif value_string == 'mean':
+                    val = _mean(data=val)
+                elif value_string == 'median':
+                    val = _median(data=val)
+                elif value_string == 'std':
+                    val = _std(data=val)
+                value_lst.append(val)
 
         # Get colors
         if color_lst is None:
