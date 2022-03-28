@@ -81,6 +81,7 @@ class Table:
                  sequential_cells: Optional[bool] = None,
                  color_map: Optional[str] = 'Greens',
                  font_color: Optional[str] = 'black',
+                 show: bool = False,
                  ):
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
@@ -166,7 +167,11 @@ class Table:
         ax.axis('tight')
         ax.axis('off')
         fig.tight_layout()
+
         self.ax = ax
+
+        if show:
+            plt.show()
 
     def __repr__(self):
         return 'Table Plot'

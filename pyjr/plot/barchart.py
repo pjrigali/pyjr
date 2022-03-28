@@ -55,7 +55,9 @@ class Bar:
                  grid_alpha: float = 0.75,
                  grid_lineweight: float = 0.5,
                  grid_dash_sequence: tuple = (1, 3),
-                 fig_size: Optional[tuple] = (10, 7)):
+                 fig_size: Optional[tuple] = (10, 7),
+                 show: bool = False,
+                 ):
         # Parse input data
         dic = False
         if isinstance(data, (Data, PreProcess)):
@@ -131,6 +133,9 @@ class Bar:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
 
         self.ax = ax
+
+        if show:
+            plt.show()
 
     def __repr__(self):
         return 'Bar Chart Plot'

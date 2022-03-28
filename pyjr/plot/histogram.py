@@ -135,6 +135,7 @@ class Histogram:
                  legend_fontsize: Optional[str] = 'medium',
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
+                 show: bool = False,
                  ):
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
@@ -198,8 +199,12 @@ class Histogram:
             ax1.set_ylabel(norm_ylabel, color=norm_color)
             ax1.tick_params(axis='y', labelcolor=norm_color)
             ax1.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=norm_legend_location, frameon=True)
+
         self.ax = ax
         self.ax1 = ax1
+
+        if show:
+            plt.show()
 
     def __repr__(self):
         return 'Histogram Plot'

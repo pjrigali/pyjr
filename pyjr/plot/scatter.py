@@ -118,7 +118,8 @@ class Scatter:
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
                  compare_two: Union[Tuple[str], bool] = None,
-                 y_limit: Optional[Union[list, tuple]] = None
+                 y_limit: Optional[Union[list, tuple]] = None,
+                 show: bool = False,
                  ):
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
@@ -209,7 +210,11 @@ class Scatter:
 
         if y_limit:
             ax.set_ylim(bottom=y_limit[0], top=y_limit[1])
+
         self.ax = ax
+
+        if show:
+            plt.show()
 
     def __repr__(self):
         return 'Scatter Plot'

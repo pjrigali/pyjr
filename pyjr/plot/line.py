@@ -103,6 +103,7 @@ class Line:
                  legend_fontsize: Optional[str] = 'medium',
                  legend_transparency: Optional[float] = 0.75,
                  legend_location: Optional[str] = 'lower right',
+                 show: bool = False,
                  ):
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
@@ -151,7 +152,11 @@ class Line:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
         ax.set_xlabel(xlabel, color=xlabel_color, fontsize=xlabel_size)
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
+
         self.ax = ax
+
+        if show:
+            plt.show()
 
     def __repr__(self):
         return 'Line Plot'
