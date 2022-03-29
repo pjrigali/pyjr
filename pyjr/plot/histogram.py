@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional, Union, Tuple
+from typing import List, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -19,18 +19,6 @@ from pyjr.utils.tools import _to_metatype
 from pyjr.utils.base import _mean, _std
 
 
-def insert_every(L, char, every):
-    """generates items composed of L-items interweaved with char every-so-many items"""
-    for i in range(len(L)):
-        yield L[i]
-        if (i + 1) % every == 0:
-            yield char
-
-
-# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
-
-
 @dataclass
 class Histogram:
     """
@@ -38,13 +26,13 @@ class Histogram:
     Class for plotting histograms.
 
     :param data: Input data.
-    :type data: pd.DataFrame,
-    :param limit: Limit the length of data. *Optional*
-    :type limit: int
-    :param label_lst: List of labels to include, if None will include all columns. *Optional*
-    :type label_lst: List[str]
-    :param color_lst: List of colors to graph, needs to be same length as label_lst. *Optional*
-    :type color_lst: List[str]
+    :type data: Either Data(pyjr class), PreProcess(pyjr class), list of the latter or a dict, pd.DataFrame.
+    :param limit: Selection of rows to include.
+    :type limit: list or tuple of int's.
+    :param label_lst: Columns or names to focus on.
+    :type label_lst: list or tuple of str's.
+    :param color_lst: List or tuple of colors to use in plot.
+    :type color_lst: List or tuple
     :param include_norm: Include norm. If included, requires a column str, default = None. *Optional*
     :type include_norm: str
     :param norm_color: Norm color, default = 'red'. *Optional*
@@ -70,7 +58,7 @@ class Histogram:
     :param ylabel_size: Y label size, default = 'medium'. *Optional*
     :type ylabel_size: str
     :param ytick_rotation:
-    :type ytick_rotation: Optional[int] = 0,
+    :type ytick_rotation: int = 0,
     :param xlabel: X axis label. *Optional*
     :type xlabel: str
     :param xlabel_color: X axis label color, default = 'black'. *Optional*
@@ -78,63 +66,68 @@ class Histogram:
     :param xlabel_size: X label size, default = 'medium'. *Optional*
     :type xlabel_size: str
     :param xtick_rotation:
-    :type xtick_rotation: Optional[int] = 0,
-    :param title: Graph title, default = 'Histogram'. *Optional*
+    :type xtick_rotation: int = 0,
+    :param title: Title of plt.
     :type title: str
-    :param title_size: Title size, default = 'xx-large'. *Optional*
+    :param title_size: Size of title font. *Default is xx-large*
     :type title_size: str
-    :param grid: If True will show grid, default = true. *Optional*
+    :param grid: Whether to include a grid. *Default is True.*
     :type grid: bool
-    :param grid_alpha: Grid alpha, default = 0.75. *Optional*
+    :param grid_alpha: Transparency of grid lines. *Default is 0.75'*
     :type grid_alpha: float
-    :param grid_dash_sequence: Grid dash sequence, default = (3, 3). *Optional*
-    :type grid_dash_sequence: tuple
-    :param grid_lineweight: Grid lineweight, default = 0.5. *Optional*
+    :param grid_lineweight: Width of gridlines. *Default is 0.5.*
     :type grid_lineweight: float
+    :param grid_dash_sequence: Tuple of spaces and lines in grid. *Default is (1, 3)*
+    :type grid_dash_sequence: tuple
+    :param fig_size: Width and height of figure. *Default is (10, 7).*
+    :type fig_size: tuple
     :param legend_fontsize: Legend fontsize, default = 'medium'. *Optional*
     :type legend_fontsize: str
     :param legend_transparency: Legend transparency, default = 0.75. *Optional*
     :type legend_transparency: float
     :param legend_location: legend location, default = 'lower right'. *Optional*
     :type legend_location: str
+    :param show: Whether to print the plot. *Default is False.*
+    :type show: bool
     :example: *None*
-    :note: *None*
-
+    :note:
+        fonts can be: {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
+        location can be: {'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',
+                          'center right', 'lower center', 'upper center', 'center'}
     """
-
     __slots__ = ("ax", "ax1")
 
     def __init__(self,
                  data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
-                 color_lst: Optional[Union[List[str], Tuple[str]]] = None,
-                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
-                 limit: Optional[Union[List[int], Tuple[int]]] = None,
-                 include_norm: Optional[str] = None,
-                 norm_color: Optional[str] = 'r',
-                 norm_lineweight: Optional[float] = 1.0,
-                 norm_ylabel: Optional[str] = None,
-                 norm_legend_location: Optional[str] = 'upper right',
-                 fig_size: Optional[tuple] = (10, 7),
-                 bins: Optional[str] = 'sturges',
-                 hist_type: Optional[str] = 'bar',
-                 stacked: Optional[bool] = False,
-                 ylabel: Optional[str] = None,
-                 ylabel_color: Optional[str] = 'black',
-                 ylabel_size: Optional[str] = 'medium',
-                 ytick_rotation: Optional[int] = 0,
-                 xlabel: Optional[str] = None,
-                 xlabel_color: Optional[str] = 'black',
-                 xlabel_size: Optional[str] = 'medium',
-                 xtick_rotation: Optional[int] = 0,
-                 title: Optional[str] = 'Histogram',
-                 title_size: Optional[str] = 'xx-large',
-                 grid: Optional[bool] = True,
-                 grid_alpha: Optional[float] = 0.75,
-                 grid_dash_sequence: Optional[tuple] = (3, 3),
-                 grid_lineweight: Optional[float] = 0.5,
-                 legend_fontsize: Optional[str] = 'medium',
-                 legend_transparency: Optional[float] = 0.75,
-                 legend_location: Optional[str] = 'lower right',
+                 color_lst: Union[List[str], Tuple[str]] = None,
+                 label_lst: Union[List[str], Tuple[str]] = None,
+                 limit: Union[List[int], Tuple[int]] = None,
+                 include_norm: str = None,
+                 norm_color: str = 'r',
+                 norm_lineweight: float = 1.0,
+                 norm_ylabel: str = None,
+                 norm_legend_location: str = 'upper right',
+                 fig_size: tuple = (10, 7),
+                 bins: str = 'sturges',
+                 hist_type: str = 'bar',
+                 stacked: bool = False,
+                 ylabel: str = None,
+                 ylabel_color: str = 'black',
+                 ylabel_size: str = 'medium',
+                 ytick_rotation: int = 0,
+                 xlabel: str = None,
+                 xlabel_color: str = 'black',
+                 xlabel_size: str = 'medium',
+                 xtick_rotation: int = 0,
+                 title: str = 'Histogram',
+                 title_size: str = 'xx-large',
+                 grid: bool = True,
+                 grid_alpha: float = 0.75,
+                 grid_dash_sequence: tuple = (3, 3),
+                 grid_lineweight: float = 0.5,
+                 legend_fontsize: str = 'medium',
+                 legend_transparency: float = 0.75,
+                 legend_location: str = 'lower right',
                  show: bool = False,
                  ):
         # Parse input data

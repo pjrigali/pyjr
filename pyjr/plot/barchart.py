@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional, Union, Tuple
+from typing import List, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 from pyjr.classes.data import Data
@@ -17,45 +17,81 @@ from pyjr.utils.tools import _to_metatype
 from pyjr.utils.base import _mean, _std, _sum, _median
 
 
-def insert_every(L, char, every):
-    """generates items composed of L-items interweaved with char every-so-many items"""
-    for i in range(len(L)):
-        yield L[i]
-        if (i + 1) % every == 0:
-            yield char
-
-
-# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
-
-
 @dataclass
 class Bar:
+    """
 
+    Builds Bar Chart Class. Used for plotting data.
+
+    :param data: Input data.
+    :type data: Either Data(pyjr class), PreProcess(pyjr class), list of the latter or a dict, pd.DataFrame.
+    :param value_string: Input data conversion, {sum, mean, median, std}. *Default is sum.*
+    :type value_string: str.
+    :param label_lst: Columns or names to focus on.
+    :type label_lst: list or tuple of str's.
+    :param vert_hor: True is vertical, False is horizontal. *Default is True.*
+    :type vert_hor: bool.
+    :param xlabel: Plot X axis label.
+    :type xlabel: str
+    :param xlabel_size: Plot X axis font size. *Default is medium*
+    :type xlabel_size: str
+    :param ylabel: Plot Y axis label.
+    :type ylabel: str
+    :param ylabel_size: Plot Y axis font size. *Default is medium*
+    :type ylabel_size: str
+    :param title: Title of plt.
+    :type title: str
+    :param title_size: Size of title font. *Default is xx-large*
+    :type title_size: str
+    :param limit: Selection of rows to include.
+    :type limit: list or tuple of int's.
+    :param include_mu: Include the mean of the values. *Default is True*
+    :type include_mu: bool
+    :param mu_color: Color of mu data. *Default is red.*
+    :type mu_color: str
+    :param color_lst: List or tuple of colors to use in plot.
+    :type color_lst: List or tuple
+    :param grid: Whether to include a grid. *Default is True.*
+    :type grid: bool
+    :param grid_alpha: Transparency of grid lines. *Default is 0.75'*
+    :type grid_alpha: float
+    :param grid_lineweight: Width of gridlines. *Default is 0.5.*
+    :type grid_lineweight: float
+    :param grid_dash_sequence: Tuple of spaces and lines in grid. *Default is (1, 3)*
+    :type grid_dash_sequence: tuple
+    :param fig_size: Width and height of figure. *Default is (10, 7).*
+    :type fig_size: tuple
+    :param show: Whether to print the plot. *Default is False.*
+    :type show: bool
+    :example: *None*
+    :note:
+        fonts can be: {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
+        location can be: {'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',
+                          'center right', 'lower center', 'upper center', 'center'}
+
+    """
     __slots__ = "ax"
 
     def __init__(self,
                  data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]], dict],
                  value_string: str = 'sum',
-                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 label_lst: Union[List[str], Tuple[str]] = None,
                  vert_hor: bool = True,
-                 xlabel: Optional[str] = 'Names',
-                 xlabel_size: Optional[str] = 'medium',
-                 ylabel: Optional[str] = 'Values',
-                 ylabel_size: Optional[str] = 'medium',
-                 title: Optional[str] = 'Bar Chart',
-                 title_size: Optional[str] = 'xx-large',
-                 limit: Optional[Union[List[int], Tuple[int]]] = None,
+                 xlabel: str = 'Names',
+                 xlabel_size: str = 'medium',
+                 ylabel: str = 'Values',
+                 ylabel_size: str = 'medium',
+                 title: str = 'Bar Chart',
+                 title_size: str = 'xx-large',
+                 limit: Union[List[int], Tuple[int]] = None,
                  include_mu: bool = False,
-                 mu_color: Optional[str] = 'r',
-                 color_lst: list = None,
-                 xtick_rotation: int = -90,
-                 xtick_size: Optional[str] = 'small',
+                 mu_color: str = 'r',
+                 color_lst: Union[list, tuple] = None,
                  grid: bool = True,
                  grid_alpha: float = 0.75,
                  grid_lineweight: float = 0.5,
                  grid_dash_sequence: tuple = (1, 3),
-                 fig_size: Optional[tuple] = (10, 7),
+                 fig_size: tuple = (10, 7),
                  show: bool = False,
                  ):
         # Parse input data

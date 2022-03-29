@@ -8,26 +8,13 @@ Author:
  Peter Rigali - 2022-03-10
 """
 from dataclasses import dataclass
-from typing import List, Optional, Union, Tuple
+from typing import List, Union, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 from scipy import stats
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from pyjr.utils.tools import _to_metatype
-
-
-def insert_every(L, char, every):
-    """generates items composed of L-items interweaved with char every-so-many items"""
-    for i in range(len(L)):
-        yield L[i]
-        if (i + 1) % every == 0:
-            yield char
-
-
-# fonts = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-# location = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',  'center right', 'lower center', 'upper center', 'center']
 
 
 @dataclass
@@ -37,13 +24,13 @@ class Scatter:
     Class for plotting scatter plots.
 
     :param data: Input data.
-    :type data: pd.DataFrame,
-    :param limit: Limit the length of data. *Optional*
-    :type limit: int
-    :param label_lst: List of labels to include, if None will include all columns. *Optional*
-    :type label_lst: List[str]
-    :param color_lst: List of colors to graph, needs to be same length as label_lst. *Optional*
-    :type color_lst: List[str]
+    :type data: Either Data(pyjr class), PreProcess(pyjr class), list of the latter or a dict, pd.DataFrame.
+    :param limit: Selection of rows to include.
+    :type limit: list or tuple of int's.
+    :param label_lst: Columns or names to focus on.
+    :type label_lst: list or tuple of str's.
+    :param color_lst: List or tuple of colors to use in plot.
+    :type color_lst: List or tuple
     :param regression_line:  If included, requires a column str or List[str], default = None. *Optional*
     :type regression_line: List[str]
     :param regression_line_color: Color of regression line, default = 'red'. *Optional*
@@ -64,9 +51,9 @@ class Scatter:
     :type xlabel_color: str
     :param xlabel_size: X label size, default = 'medium'. *Optional*
     :type xlabel_size: str
-    :param title: Graph title, default = 'Scatter Plot'. *Optional*
+    :param title: Title of plt.
     :type title: str
-    :param title_size: Title size, default = 'xx-large'. *Optional*
+    :param title_size: Size of title font. *Default is xx-large*
     :type title_size: str
     :param grid: If True will show grid, default = true. *Optional*
     :type grid: bool
@@ -87,38 +74,40 @@ class Scatter:
     :param y_limit: If given will limit the y axis.
     :type y_limit: List[float]
     :example: *None*
-    :note: *None*
+    :note:
+        fonts can be: {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
+        location can be: {'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',
+                          'center right', 'lower center', 'upper center', 'center'}
 
     """
-
     __slots__ = "ax"
 
     def __init__(self,
                  data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
-                 limit: Optional[Union[List[int], Tuple[int]]] = None,
-                 label_lst: Optional[Union[List[str], Tuple[str]]] = None,
-                 color_lst: Optional[Union[List[str], Tuple[str]]] = None,
+                 limit: Union[List[int], Tuple[int]] = None,
+                 label_lst: Union[List[str], Tuple[str]] = None,
+                 color_lst: Union[List[str], Tuple[str]] = None,
                  regression_line: Union[List[str], Tuple[str]] = None,
-                 regression_line_color: Optional[str] = None,
-                 regression_line_lineweight: Optional[float] = 2.0,
-                 fig_size: Optional[tuple] = (10, 7),
-                 ylabel: Optional[str] = None,
-                 ylabel_color: Optional[str] = 'black',
-                 ylabel_size: Optional[str] = 'medium',
-                 xlabel: Optional[str] = None,
-                 xlabel_color: Optional[str] = 'black',
-                 xlabel_size: Optional[str] = 'medium',
-                 title: Optional[str] = 'Scatter Plot',
-                 title_size: Optional[str] = 'xx-large',
-                 grid: Optional[bool] = True,
-                 grid_alpha: Optional[float] = 0.75,
-                 grid_dash_sequence: Optional[tuple] = (3, 3),
-                 grid_lineweight: Optional[float] = 0.5,
-                 legend_fontsize: Optional[str] = 'medium',
-                 legend_transparency: Optional[float] = 0.75,
-                 legend_location: Optional[str] = 'lower right',
+                 regression_line_color: str = None,
+                 regression_line_lineweight: float = 2.0,
+                 fig_size: tuple = (10, 7),
+                 ylabel: str = None,
+                 ylabel_color: str = 'black',
+                 ylabel_size: str = 'medium',
+                 xlabel: str = None,
+                 xlabel_color: str = 'black',
+                 xlabel_size: str = 'medium',
+                 title: str = 'Scatter Plot',
+                 title_size: str = 'xx-large',
+                 grid: bool = True,
+                 grid_alpha: float = 0.75,
+                 grid_dash_sequence: tuple = (3, 3),
+                 grid_lineweight: float = 0.5,
+                 legend_fontsize: str = 'medium',
+                 legend_transparency: float = 0.75,
+                 legend_location: str = 'lower right',
                  compare_two: Union[Tuple[str], bool] = None,
-                 y_limit: Optional[Union[list, tuple]] = None,
+                 y_limit: Union[list, tuple] = None,
                  show: bool = False,
                  ):
         # Parse input data
