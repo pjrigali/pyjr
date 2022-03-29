@@ -17,8 +17,9 @@ def _max(data: Union[list, tuple]) -> float:
     Find the max value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Maximum value.
+    rtype: float.
     :note: *None*
     """
     if data.__len__() > 1:
@@ -31,8 +32,9 @@ def _min(data: Union[list, tuple]):
     Find the min value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Minimum value.
+    :rtype: float.
     :note: *None*
     """
     if data.__len__() > 1:
@@ -45,8 +47,9 @@ def _range(data: Union[list, tuple]) -> float:
     Find the max to min range value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Range value.
+    :rtype: float.
     :note: *None*
     """
     if data.__len__() > 1:
@@ -59,7 +62,7 @@ def _mean(data: Union[list, tuple]) -> float:
     Find the mean value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Mean value.
     :rtype: float.
     :note: *None*
@@ -72,7 +75,7 @@ def _variance(data: Union[list, tuple], ddof: int = 1) -> float:
     Find the variance value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param ddof: Desired Degrees of Freedom.
     :type ddof: int
     :return: Variance value.
@@ -83,12 +86,12 @@ def _variance(data: Union[list, tuple], ddof: int = 1) -> float:
     return sum(((x - mu) ** 2 for x in data)) / (data.__len__() - ddof)
 
 
-def _std(data: list, ddof: int = 1) -> float:
+def _std(data: Union[list, tuple], ddof: int = 1) -> float:
     """
     Find the Standard Deviation value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param ddof: Desired Degrees of Freedom.
     :type ddof: int
     :return: Standard Deviation value.
@@ -103,8 +106,9 @@ def _sum(data: Union[list, tuple]) -> float:
     Find the sum value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Sum value.
+    rtype: float.
     :note: *None*
     """
     if data.__len__() > 1:
@@ -117,7 +121,7 @@ def _median(data: Union[list, tuple]) -> float:
     Find the median value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Mean value.
     :rtype: float.
     :note: *None*
@@ -135,7 +139,7 @@ def _mode(data: Union[list, tuple]) -> float:
     Find the mode value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Mode value.
     :rtype: float.
     :note: *None*
@@ -165,7 +169,7 @@ def _skew(data: Union[list, tuple]) -> float:
     Find the skew value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Skew value.
     :rtype: float.
     :note: *None*
@@ -181,7 +185,7 @@ def _kurtosis(data: Union[list, tuple]) -> float:
     Find the kurtosis value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Kurtosis value.
     :rtype: float.
     :note: *None*
@@ -197,10 +201,11 @@ def _percentile(data: Union[list, tuple], q: float) -> float:
     Find the percentile value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param q: Percentile percent.
     :type q: float.
     :return: Percentile value.
+    rtype: float.
     :note: *None*
     """
     data = _round_to(data=[item * 1000.0 for item in data], val=1)
@@ -216,7 +221,7 @@ def _percentiles(data: Union[list, tuple], q_lst: Union[list, tuple] = (0.159, 0
     Calculate various percentiles for a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param q_lst: Desired percentile percents.
     :type q_lst: List of floats.
     :return: A group of stats.
