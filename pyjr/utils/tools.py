@@ -21,7 +21,7 @@ def _mean_(data: Union[list, tuple]) -> float:
     Find the mean value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Mean value.
     :rtype: float.
     :note: *None*
@@ -34,7 +34,7 @@ def _variance_(data: Union[list, tuple], ddof: int = 1) -> float:
     Find the variance value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param ddof: Desired Degrees of Freedom.
     :type ddof: int
     :return: Variance value.
@@ -50,7 +50,7 @@ def _std_(data: list, ddof: int = 1) -> float:
     Find the Standard Deviation value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param ddof: Desired Degrees of Freedom.
     :type ddof: int
     :return: Standard Deviation value.
@@ -65,7 +65,7 @@ def _percentile_(data: Union[list, tuple], q: float) -> float:
     Find the percentile value of a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :param q: Percentile percent.
     :type q: float.
     :return: Percentile value.
@@ -266,12 +266,12 @@ def _add_constant(data: Union[list, tuple, np.ndarray]) -> np.ndarray:
     return arr
 
 
-def _unique_values(data: list, count: False):
+def _unique_values(data: Union[list, tuple], count: False):
     """
     Finds unique values from a list.
 
     :param data: Input data.
-    :type data: list.
+    :type data: list or tuple.
     :return: Returns either a list or dict.
     :note: *None*
     """
@@ -301,7 +301,7 @@ def _search_dic_values(dic: dict, item: Union[str, int, float]) -> Union[str, fl
 
 
 # Model_data
-def _check_names(name, name_list) -> bool:
+def _check_names(name: str, name_list: Union[list, tuple]) -> bool:
     name_dic = {name: True for name in name_list}
     if name not in name_dic:
         return True
@@ -309,14 +309,14 @@ def _check_names(name, name_list) -> bool:
         raise AttributeError("{} already included in names list".format(name))
 
 
-def _check_len(len1, len2) -> bool:
+def _check_len(len1: int, len2: int) -> bool:
     if len1 == len2:
         return True
     else:
         raise AttributeError("(len1: {} ,len2: {} ) Lengths are not the same.".format(len1, len2))
 
 
-def _add_column(arr1, arr2) -> np.ndarray:
+def _add_column(arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray:
     new_arr = np.ones((arr1.shape[0], arr1.shape[1] + 1))
     for i in range(arr1.shape[1]):
         new_arr[:, i] = arr1[:, i]
