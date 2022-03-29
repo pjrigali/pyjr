@@ -21,6 +21,7 @@ from pyts.decomposition import SingularSpectrumAnalysis
 from pyts.transformation import BOSS, ShapeletTransform
 from pyts.metrics import boss, dtw
 from scipy.stats import ks_2samp, ttest_ind
+from pyjr.utils.base import _min
 
 
 @dataclass
@@ -127,32 +128,60 @@ class TimeSeries:
         return dtw(x=self.data, y=data.data, dist=dist, method=method)
 
     # Distance
-    def get_eucludian_distance(self, other) -> float:
-        return math.dist(self.data, other.data) / self.data.__len__()
+    def get_euclidean_distance(self, other) -> float:
+        """Returns the distance between two lists or tuples."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            return math.dist(self.data, other.data) / self.data.__len__()
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
 
     # MAPE
     # can not handle zero in denominator
-    def get_mape(self, other) -> float:
-        actual = np.array([i if i != 0.0 else .01 for i in self.data])
-        pred = np.array([i if i != 0.0 else .01 for i in other.data])
-        return np.mean(np.abs((actual - pred) / actual)) * 100
+    def get_mape(self, other, min_value: float = 0.01) -> float:
+        """Returns the MAPE between two lists or tuples."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            if _min(data=self.data) == 0:
+                actual = np.array([i if i != 0.0 else min_value for i in self.data])
+            else:
+                actual = self.data
+            if _min(data=other.data) == 0:
+                pred = np.array([i if i != 0.0 else min_value for i in other.data])
+            else:
+                pred = other.data
+            return np.mean(np.abs((actual - pred) / actual)) * 100
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
 
     # Auto-Correlation
     def get_auto_corr(self, other, num: int = 50) -> float:
-
-        def acf(x, length):
-            return [1] + [np.corrcoef(x[:-i], x[i:])[0,1] for i in range(1, length)]
-
-        return np.corrcoef(acf(x=self.data, length=num), acf(x=other.data, length=num))[0, 1]
+        """Returns the correlation of auto-corr between two lists or tuples."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            def acf(x, length):
+                return [1] + [np.corrcoef(x[:-i], x[i:])[0,1] for i in range(1, length)]
+            return np.corrcoef(acf(x=self.data, length=num), acf(x=other.data, length=num))[0, 1]
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
 
     # Correlation
     def get_corr(self, other) -> float:
-        return np.corrcoef(self.data, other.data)[0, 1]
+        """Returns the correlation of two lists or tuples."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            return np.corrcoef(self.data, other.data)[0, 1]
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
 
     # T Test to compare means
     def get_compare_means(self, other) -> float:
-        return ttest_ind(a=self.data, b=other.data).pvalue
+        """Returns the t-test, comparing means of two lists or tuples."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            return ttest_ind(a=self.data, b=other.data).pvalue
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
 
     # Kolmogorov-smirnov to see if from the same distribution
     def get_kol_smirnov(self, other) -> float:
-        return ks_2samp(data1=self.data, data2=other.data).pvalue
+        """Returns if teo lists or tuples come from the same distribution, as a pvalue."""
+        if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
+            return ks_2samp(data1=self.data, data2=other.data).pvalue
+        else:
+            raise AttributeError("Both data and other data need to be a list or tuple.")
