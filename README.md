@@ -32,3 +32,5 @@ The package can be accessed via pip install.
   * This release adds improved plotting capabilities.
 * 0.0.4 - *Plot Release+*
   * This release adds documentation to the plot classes.
+* 0.0.5 - *Functional Release*
+  * This release allows subpackages.
