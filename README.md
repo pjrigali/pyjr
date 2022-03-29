@@ -30,3 +30,5 @@ The package can be accessed via pip install.
   * This release has passed a cursory review. 
 * 0.0.3 - *Plot Release*
   * This release adds improved plotting capabilities.
+* 0.0.4 - *Plot Release+*
+  * This release adds documentation to the plot classes.
