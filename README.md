@@ -17,6 +17,7 @@ The package can be accessed via pip install.
 
 ### Future Work
 * Plot classes have not been vetted.
+* Add arg parse to plot classes.
 * Documentation of classes and functions.
 * Update to TimeSeries, Tuning and Features.
 * Test all model classes and functions.
