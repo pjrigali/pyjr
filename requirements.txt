@@ -8,3 +8,4 @@ setuptools>=57.0.0
 pandas>=1.4.1
 matplotlib>=3.5.1
 statsmodels>=0.13.2
+six>=1.16.0
