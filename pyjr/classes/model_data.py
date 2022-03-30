@@ -14,7 +14,10 @@ import random
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from pyjr.utils.tools.math import _sum
-from pyjr.utils.tools import _round_to, _to_metatype, _unique_values, _check_len, _check_names, _add_column
+from pyjr.utils.tools.clean import _round, _mtype
+from pyjr.utils.tools.general import _unique_values
+from pyjr.utils.tools.array import _add_column
+from pyjr.utils._class_functions import _len, _names
 from sklearn.decomposition import PCA, TruncatedSVD
 
 
@@ -52,8 +55,7 @@ class ModelingData:
             self.len = data.len
             self.x_data_names.append(data.name)
         else:
-            if _check_len(len1=self.len, len2=data.len) is True and _check_names(name=data.name,
-                                                                                 name_list=self.x_data_names) is True:
+            if _len(l1=self.len, l2=data.len) is True and _names(n=data.name, n_lst=self.x_data_names) is True:
                 self.x_data_names.append(data.name)
                 if isinstance(data, Data):
                     self.x_data = _add_column(arr1=self.x_data, arr2=data.array(axis=1))
@@ -62,7 +64,7 @@ class ModelingData:
         return self
 
     def add_ydata(self, data: Union[Data, PreProcess]):
-        if _check_len(len1=self.len, len2=data.len):
+        if _len(l1=self.len, l2=data.len):
             if isinstance(data, Data):
                 self.y_data = data.array(axis=1)
             else:
@@ -110,20 +112,19 @@ class ModelingData:
 
     def get_balance(self):
         """Returns the data balance for Y_data between train, test, and valid"""
-        train_lst = _to_metatype(data=self.y_train.reshape(1, self.y_train.shape[0])[0])
-        test_lst = _to_metatype(data=self.y_test.reshape(1, self.y_test.shape[0])[0])
+        train_lst = _mtype(d=self.y_train.reshape(1, self.y_train.shape[0])[0])
+        test_lst = _mtype(d=self.y_test.reshape(1, self.y_test.shape[0])[0])
         dic = {"train": _unique_values(data=train_lst, count=True),
                "test": _unique_values(data=test_lst, count=True)}
 
         if self.y_valid is not None:
-            valid_lst = _to_metatype(data=self.y_valid.reshape(1, self.y_valid.shape[0])[0])
+            valid_lst = _mtype(d=self.y_valid.reshape(1, self.y_valid.shape[0])[0])
             dic["valid"] = _unique_values(data=valid_lst, count=True)
 
         final_dic = {i: {} for i in dic.keys()}
         for key, val in dic.items():
             for key1, val1 in val.items():
-                final_dic[key][key1] = _round_to(data=val[key1] / _sum(data=_to_metatype(data=val.values())),
-                                                 val=100, remainder=True)
+                final_dic[key][key1] = _round(d=val[key1] / _sum(data=_mtype(d=val.values())), v=100, r=True)
         return final_dic
 
     def add_pca(self, n_com: int = 2):

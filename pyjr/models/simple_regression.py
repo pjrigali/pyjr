@@ -36,7 +36,7 @@ class Regression:
         if x_data.len != y_data.len:
             raise AttributeError('X and Y data are not the same length.')
         model = regression.linear_model.OLS(y_data.array(), _add_constant(x_data.data)).fit()
-        self.results = {att: getattr(model, att) for att in dir(model) if '__' not in att and att[0] is not '_' and isinstance(getattr(model, att), (np.float_, np.ndarray, np.int_, np.str_, np.bool_))}
+        self.results = {att: getattr(model, att) for att in dir(model) if '__' not in att and att[0] != '_' and isinstance(getattr(model, att), (np.float_, np.ndarray, np.int_, np.str_, np.bool_))}
 
     def __repr__(self):
         return 'RegressionAnalysis'

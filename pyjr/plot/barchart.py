@@ -104,14 +104,14 @@ class Bar:
             if label_lst is None:
                 label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, list):
-            dic = {}
+            _dic = {}
             for d in data:
                 if isinstance(d.name, (list, tuple)):
                     for ind, val in enumerate(d.name):
-                        dic[val.name] = val.data[:, ind]
+                        _dic[val.name] = val.data[:, ind]
                 else:
-                    dic[d.name] = d.data
-            data = pd.DataFrame.from_dict(dic)
+                    _dic[d.name] = d.data
+            data = pd.DataFrame.from_dict(_dic)
             label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, dict):
             value_lst = _mtype(d=data.values(), dtype='list')

@@ -2,7 +2,7 @@ from typing import Union
 
 
 # Model_data
-def _check_names(n: str, n_lst: Union[list, tuple]) -> bool:
+def _names(n: str, n_lst: Union[list, tuple]) -> bool:
     name_dic = {name: True for name in n_lst}
     if n not in name_dic:
         return True
@@ -10,7 +10,7 @@ def _check_names(n: str, n_lst: Union[list, tuple]) -> bool:
         raise AttributeError("{} already included in names list".format(n))
 
 
-def _check_len(l1: int, l2: int) -> bool:
+def _len(l1: int, l2: int) -> bool:
     if l1 == l2:
         return True
     else:

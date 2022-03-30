@@ -12,50 +12,51 @@ from typing import Union, Optional
 from pandas import Series
 import numpy as np
 from pyjr.classes.data import Data
-from pyjr.utils.tools.clean import _prep, _type, _mtype
+from pyjr.utils.tools.clean import _prep, _type, _mtype, _rval, _rnan, _replace_na, _empty
 from pyjr.utils.tools.math import _perc, _var, _mean, _sum
 from pyjr.utils.tools.array import _stack
-from pyjr.utils.tools.general import _dis, _cent
+from pyjr.utils.tools.general import _dis, _cent, _unique_values
 
-# def _clean(data, dtype, na):
-#     if na is None:
-#         na = _replacement_value(data=data, na_handling='zero')
-#     else:
-#         na = _replacement_value(data=data, na_handling=na)
-#     data = _replace_na(data=data, replacement_value=na)
-#     if dtype is None:
-#         dtype = np.min_scalar_type(data).type
-#     else:
-#         type_tup = (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64, np.float16,
-#                     np.float32, np.float64, np.float_, np.str_, np.int_)
-#         test_dic = {i.__name__: True for i in type_tup}
-#         if dtype in test_dic:
-#             dtype = {i.__name__: i for i in type_tup}[dtype]
-#             if dtype in {np.float_: True, np.int_: True, np.bool_: True}:
-#                 data = dtype(data).tolist()
-#             else:
-#                 data = np.array(data).astype(dtype).tolist()
-#         else:
-#             raise AttributeError("Must use numpy dtypes")
-#     return data
-#
-#
-# def _one_hot_encode(func):
-#     def wrapper(*args, **kwargs):
-#         data, dtype, na = func(*args, **kwargs)
-#         data = _clean(data, dtype, na)
-#         unique = _unique_values(data=data, count=False)
-#         arr = np.zeros((len(data), len(unique)))
-#         for ind in range(len(unique)):
-#             arr[:, ind] = [1.0 if str(ind) == str(val) else 0.0 for val in data]
-#         return arr
-#     return wrapper
-#
-#
-# @_one_hot_encode
-# def oneHotEncode(data: list, dtype: str = "str_", na: str = None):
-#     """One hot encode a list of data"""
-#     return (data, dtype, na)
+
+def _clean(data, dtype, na):
+    if na is None:
+        na = _rval(d=data, na='zero')
+    else:
+        na = _rval(d=data, na=na)
+    data = _replace_na(d=data, rval=na)
+    if dtype is None:
+        dtype = np.min_scalar_type(data).type
+    else:
+        type_tup = (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64, np.float16,
+                    np.float32, np.float64, np.float_, np.str_, np.int_)
+        test_dic = {i.__name__: True for i in type_tup}
+        if dtype in test_dic:
+            dtype = {i.__name__: i for i in type_tup}[dtype]
+            if dtype in {np.float_: True, np.int_: True, np.bool_: True}:
+                data = dtype(data).tolist()
+            else:
+                data = np.array(data).astype(dtype).tolist()
+        else:
+            raise AttributeError("Must use numpy dtypes")
+    return data
+
+
+def _one_hot_encode(func):
+    def wrapper(*args, **kwargs):
+        data, dtype, na = func(*args, **kwargs)
+        data = _clean(data, dtype, na)
+        unique = _unique_values(data=data, count=False)
+        arr = np.zeros((len(data), len(unique)))
+        for ind in range(len(unique)):
+            arr[:, ind] = [1.0 if str(ind) == str(val) else 0.0 for val in data]
+        return arr
+    return wrapper
+
+
+@_one_hot_encode
+def oneHotEncode(data: list, dtype: str = "str_", na: str = None):
+    """One hot encode a list of data"""
+    return (data, dtype, na)
 
 
 def calc_gini(d: Union[list, np.ndarray, Series],
@@ -147,9 +148,9 @@ def outlier_var(data: Data, plus: Optional[bool] = True, std_value: int = 2,
 
     """
     per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
-    lst = data.data.copy()
-    temp_var = _var(data=lst, ddof=data.inputs['ddof'])
-    dev_based = np.array([temp_var - _var(data=np.delete(lst, i), ddof=data.inputs['ddof']) for i, j in enumerate(lst)])
+    lst = data.data
+    temp_var = _var(data=lst, ddof=1)
+    dev_based = np.array([temp_var - _var(data=np.delete(lst, i), ddof=1) for i, j in enumerate(lst)])
 
     if plus:
         q = _perc(data=lst, q=per_dic[std_value])
@@ -334,14 +335,16 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
     arr = _stack(np.array(x_data.data), np.array(y_data.data), False)
     ran = range(0, x_data.len)
     test_centers = (_cent([arr[ind, 0]], [arr[ind, 1]]) for ind in ran)
-    distances = [_dis(cent1=i, cent2=j) for i in test_centers for j in test_centers]
+    distances = [_dis(c1=i, c2=j) for i in test_centers for j in test_centers]
 
     if plus:
         threshold = _perc(data=distances, q=per_dic[std_value])
         count_dic = {}
         for i, j in enumerate(arr):
             temp = arr[i, :] <= threshold
-            count_dic[i] = _sum([1 for i in temp if i == True])
+            v = [1 for i in temp if i == True]
+            if _empty(d=v) is False:
+                count_dic[i] = _sum(v)
     else:
         threshold = _perc(data=distances, q=per_dic[-std_value])
         count_dic = {}
@@ -350,7 +353,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
             count_dic[i] = _sum([1 for i in temp if i == True])
 
     lst = []
-    for val in _mtype(data=count_dic.values()):
+    for val in _mtype(d=count_dic.values()):
         if isinstance(val, list):
             for val1 in val:
                 lst.append(val1)
