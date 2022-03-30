@@ -40,3 +40,5 @@ The package can be accessed via pip install.
   * This release intro's a new file structure.
 * 0.0.8 - *Hot Fix*
   * Hotfix Release
+* 0.0.9 - *Another Hot Fix*
+  * Forgot to add folder to setup.py.
