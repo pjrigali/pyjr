@@ -9,7 +9,7 @@ Author:
 """
 # import pandas as pd
 # import numpy as np
-# import random
+import random
 # pd.set_option('display.max_columns', None)
 # pd.set_option('use_inf_as_na', True)
 # import pyjr.utils.simple as jr
@@ -19,14 +19,14 @@ Author:
 # from pyjr.plot.table import Table
 # from pyjr.plot.barchart import Bar
 # import matplotlib.pyplot as plt
-
+# from pyjr.classes.stat import Stat
 if __name__ == '__main__':
     pass
+
     # data = [random.randrange(1, 100, 1) for i in range(1000)]
     # data1 = [random.randrange(1, 100, 1) for i in range(1000)]
     # data2 = [random.randrange(0, 2, 1) for i in range(1000)]
     # data3 = [str(random.randrange(0, 5, 1)) for i in range(1000)]
-
     # from pyjr.utils.simple import oneHotEncode
     # ohe = oneHotEncode(data3)
 
