@@ -15,8 +15,8 @@ import numpy as np
 from scipy.stats import norm
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils._tools.clean import _mtype
-from pyjr.utils._tools.math import _mean, _std
+from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _mean, _std
 
 
 @dataclass

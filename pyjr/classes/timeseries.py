@@ -21,7 +21,7 @@ from pyts.decomposition import SingularSpectrumAnalysis
 from pyts.transformation import BOSS, ShapeletTransform
 from pyts.metrics import boss, dtw
 from scipy.stats import ks_2samp, ttest_ind
-from pyjr.utils._tools.math import _min
+from pyjr.utils.tools.math import _min
 
 
 @dataclass

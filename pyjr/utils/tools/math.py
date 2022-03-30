@@ -2,15 +2,15 @@
 Math functions.
 
 Usage:
- ./utils/_tools/math.py
+ ./utils/tools/math.py
 
 Author:
  Peter Rigali - 2022-03-30
 """
 from typing import Union
-from pyjr.utils._tools.clean import _mtype, _round
-from pyjr.utils._tools.general import _unique_values
-from pyjr.utils._tools.dic import _search_dic_values
+from pyjr.utils.tools.clean import _mtype, _round
+from pyjr.utils.tools.general import _unique_values
+from pyjr.utils.tools.dic import _search_dic_values
 
 
 # Internal Math Functions

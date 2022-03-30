@@ -38,3 +38,5 @@ The package can be accessed via pip install.
   * This release adds Stat class, for rapid stat gathering.
 * 0.0.7 - *Package Restructure*
   * This release intro's a new file structure.
+* 0.0.8 - *Hot Fix*
+  * Hotfix Release

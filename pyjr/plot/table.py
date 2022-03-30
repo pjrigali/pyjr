@@ -15,8 +15,8 @@ import numpy as np
 import six
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils._tools.clean import _mtype
-from pyjr.utils._tools.math import _min, _max
+from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _min, _max
 
 
 @dataclass

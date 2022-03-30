@@ -13,10 +13,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from pyjr.classes.model_data import ModelingData
-from pyjr.utils._tools.math import _mean, _perc, _var, _sum, _std, _min
-from pyjr.utils._tools.clean import _round, _mtype
-from pyjr.utils._tools.general import _add_constant, _cent, _dis
-from pyjr.utils._tools.array import  _stack
+from pyjr.utils.tools.math import _mean, _perc, _var, _sum, _std, _min
+from pyjr.utils.tools.clean import _round, _mtype
+from pyjr.utils.tools.general import _add_constant, _cent, _dis
+from pyjr.utils.tools.array import  _stack
 
 
 @dataclass

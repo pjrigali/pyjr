@@ -12,10 +12,10 @@ from typing import Union, Optional
 from pandas import Series
 import numpy as np
 from pyjr.classes.data import Data
-from pyjr.utils._tools.clean import _prep, _type, _mtype, _rval, _rnan, _replace_na, _empty
-from pyjr.utils._tools.math import _perc, _var, _mean, _sum
-from pyjr.utils._tools.array import _stack
-from pyjr.utils._tools.general import _dis, _cent, _unique_values
+from pyjr.utils.tools.clean import _prep, _type, _mtype, _rval, _rnan, _replace_na, _empty
+from pyjr.utils.tools.math import _perc, _var, _mean, _sum
+from pyjr.utils.tools.array import _stack
+from pyjr.utils.tools.general import _dis, _cent, _unique_values
 
 
 def _clean(data, dtype, na):

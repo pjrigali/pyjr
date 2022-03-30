@@ -13,8 +13,8 @@ import math
 import numpy as np
 from pandas import DataFrame
 from pyjr.classes.data import Data
-from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
-from pyjr.utils._tools.clean import _mtype, _check_type
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
+from pyjr.utils.tools.clean import _mtype, _check_type
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 

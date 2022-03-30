@@ -2,7 +2,7 @@
 Array functions.
 
 Usage:
- ./utils/_tools/array.py
+ ./utils/tools/array.py
 
 Author:
  Peter Rigali - 2022-03-30

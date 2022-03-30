@@ -13,7 +13,7 @@ import numpy as np
 from statsmodels import regression
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils._tools.general import _add_constant
+from pyjr.utils.tools.general import _add_constant
 
 
 @dataclass

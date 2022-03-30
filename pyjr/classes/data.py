@@ -11,10 +11,10 @@ from dataclasses import dataclass
 from pandas import DataFrame
 import numpy as np
 from scipy.stats import kstest, normaltest, shapiro
-from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
-from pyjr.utils._tools.math import _percs, _range
-from pyjr.utils._tools.clean import _nan, _prep, _mtype
-from pyjr.utils._tools.general import _unique_values
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
+from pyjr.utils.tools.math import _percs, _range
+from pyjr.utils.tools.clean import _nan, _prep, _mtype
+from pyjr.utils.tools.general import _unique_values
 
 
 @dataclass

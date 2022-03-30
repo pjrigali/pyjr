@@ -2,7 +2,7 @@
 General functions.
 
 Usage:
- ./utils/_tools/general.py
+ ./utils/tools/general.py
 
 Author:
  Peter Rigali - 2022-03-30

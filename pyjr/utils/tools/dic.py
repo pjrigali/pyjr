@@ -2,7 +2,7 @@
 Dict functions.
 
 Usage:
- ./utils/_tools/dic.py
+ ./utils/tools/dic.py
 
 Author:
  Peter Rigali - 2022-03-30

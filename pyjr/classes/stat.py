@@ -8,8 +8,8 @@ Author:
  Peter Rigali - 2022-03-30
 """
 from dataclasses import dataclass
-from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _range
-from pyjr.utils._tools.clean import _nan, _mtype, _rval, _type, _empty
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _range
+from pyjr.utils.tools.clean import _nan, _mtype, _rval, _type, _empty
 
 
 @dataclass
