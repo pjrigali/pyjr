@@ -13,8 +13,8 @@ import math
 import numpy as np
 from pandas import DataFrame
 from pyjr.classes.data import Data
-from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
-from pyjr.utils.tools import _check_type, _to_metatype
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc
+from pyjr.utils.tools.clean import _mtype, _check_type
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 
@@ -42,7 +42,7 @@ class PreProcess:
             lst = ((val - self.cleanData.median) / max_min_val for val in self.cleanData.data)
         else:
             raise AttributeError('Stat must be (mean, min, median)')
-        self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
+        self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         self.name = self.cleanData.name + "_normalize_" + stat
         return self
@@ -54,15 +54,15 @@ class PreProcess:
         elif stat == "median":
             temp_std = (self.cleanData.higher - self.cleanData.median)
             lst = ((item - self.cleanData.median) / temp_std for item in self.cleanData.data)
-        self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
+        self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         self.name = self.cleanData.name + "_standardize_" + stat
         return self
 
     def add_running(self,  window: int, stat: str = "mean", q: float = 0.50):
         """Calc running statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median": _median,
-                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _percentile}[stat]
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _median,
+                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _perc}[stat]
         ran = range(window, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat
@@ -70,16 +70,16 @@ class PreProcess:
             post = [calc(data=self.cleanData.data[i - window:i]) for i in ran]
         else:
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)
-            pre = [_percentile(data=self.cleanData.data[:window], q=q)] * window
-            post = [_percentile(data=self.cleanData.data[i - window:i], q=q) for i in ran]
-        self.data = _check_type(data=pre + post, dtype=self.cleanData.dtype)
+            pre = [_perc(data=self.cleanData.data[:window], q=q)] * window
+            post = [_perc(data=self.cleanData.data[i - window:i], q=q) for i in ran]
+        self.data = _check_type(d=pre + post, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         return self
 
     def add_cumulative(self, stat: str = "mean", q: float = 0.75):
         """Calc cumulative statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _variance, "std": _std, "sum": _sum, "median": _median,
-                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _percentile}[stat]
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _median,
+                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _perc}[stat]
         ran = range(1, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)
@@ -87,13 +87,13 @@ class PreProcess:
         else:
             self.name = self.cleanData.name + "_running_" + stat
             lst = [0.0] + [calc(data=self.cleanData.data[:i], q=q) for i in ran]
-        self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
+        self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         return self
 
     def add_log(self, constant: float = .01):
         lst = (math.log(i + constant) for i in self.cleanData.data)
-        self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
+        self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_log"
         self.len = self.data.__len__()
         return self
@@ -108,7 +108,7 @@ class PreProcess:
         if self.cleanData is None:
             return self
         lst = ((i ** lam - 1) / lam for i in self.cleanData.data)
-        self.data = _check_type(data=lst, dtype=self.cleanData.dtype)
+        self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_box_cox_" + str(lam)
         self.len = self.data.__len__()
         return self
@@ -116,7 +116,7 @@ class PreProcess:
     def add_sklearn_box_cox(self, standard: bool = True):
         """Only postive values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='box-cox', standardize=standard)
-        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_box_cox"
         self.len = self.data.__len__()
         return self
@@ -124,7 +124,7 @@ class PreProcess:
     def add_sklearn_yeo_johnson(self, standard: bool = True):
         """Postive values and negative values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='yeo-johnson', standardize=standard)
-        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_yeo_johnson"
         self.len = self.data.__len__()
         return self
@@ -134,7 +134,7 @@ class PreProcess:
         """Also accepts 'normal' """
         arr = quantile_transform(X=self.cleanData.array(axis=1), n_quantiles=n_quantiles,
                                  output_distribution=output_distribution)
-        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_quantile_" + str(n_quantiles) + "_" + output_distribution
         self.len = self.data.__len__()
         return self
@@ -144,7 +144,7 @@ class PreProcess:
         """Recommended to not do before splitting"""
         arr = robust_scale(X=self.cleanData.array(axis=1), with_centering=with_centering, with_scaling=with_scaling,
                            quantile_range=quantile_range)
-        self.data = _check_type(data=(i[0] for i in _to_metatype(data=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_robust"
         self.len = self.data.__len__()
         return self

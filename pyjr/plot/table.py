@@ -15,8 +15,8 @@ import numpy as np
 import six
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools import _to_metatype
-from pyjr.utils.base import _min, _max
+from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _min, _max
 
 
 @dataclass
@@ -85,7 +85,7 @@ class Table:
                 else:
                     dic[d.name] = d.data
             data = pd.DataFrame.from_dict(dic)
-        data['index'] = _to_metatype(data=data.index, dtype='list')
+        data['index'] = _mtype(d=data.index, dtype='list')
 
         if limit:
             data = data[limit[0]:limit[1]]
@@ -100,7 +100,7 @@ class Table:
             header_colors = [header_colors, 'w']
 
         if label_lst is None:
-            lst = _to_metatype(data=data.columns, dtype='list')
+            lst = _mtype(d=data.columns, dtype='list')
             lst.remove('index')
             label_lst = ['index'] + lst
 
@@ -110,7 +110,7 @@ class Table:
             color_lst = []
             for col in label_lst:
                 if type(data[col].iloc[0]) != str and col != 'index':
-                    d = _to_metatype(data=data[col], dtype='list')
+                    d = _mtype(d=data[col], dtype='list')
                     _norm = plt.Normalize(_min(data=d) - 1, _max(data=d) + 1)
                     temp = plt.get_cmap(color_map)(_norm(data[col]))
                 elif type(data[col].iloc[0]) == str and col != 'index':

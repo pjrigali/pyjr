@@ -15,8 +15,8 @@ import numpy as np
 from scipy.stats import norm
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools import _to_metatype
-from pyjr.utils.base import _mean, _std
+from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _mean, _std
 
 
 @dataclass
@@ -133,11 +133,11 @@ class Histogram:
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.name, dtype='list')
+                label_lst = _mtype(d=data.name, dtype='list')
             data = data.dataframe()
         elif isinstance(data, pd.DataFrame):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.columns, dtype='list')
+                label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, list):
             dic = {}
             for d in data:
@@ -147,7 +147,7 @@ class Histogram:
                 else:
                     dic[d.name] = d.data
             data = pd.DataFrame.from_dict(dic)
-            label_lst = _to_metatype(data=data.columns, dtype='list')
+            label_lst = _mtype(d=data.columns, dtype='list')
 
         # Get colors
         if color_lst is None:
@@ -182,7 +182,7 @@ class Histogram:
         # Plot normal curve
         ax1 = None
         if include_norm:
-            d = _to_metatype(data=data[include_norm], dtype='list')
+            d = _mtype(d=data[include_norm], dtype='list')
             _mu, _s = norm.fit(np.random.normal(_mean(data=d), _std(data=d), d.__len__()))
             xmin, xmax = plt.xlim()
             x = np.linspace(xmin, xmax, 100)

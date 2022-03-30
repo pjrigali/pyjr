@@ -13,7 +13,7 @@ import numpy as np
 import random
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.base import _sum
+from pyjr.utils.tools.math import _sum
 from pyjr.utils.tools import _round_to, _to_metatype, _unique_values, _check_len, _check_names, _add_column
 from sklearn.decomposition import PCA, TruncatedSVD
 

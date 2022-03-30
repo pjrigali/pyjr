@@ -1,14 +1,7 @@
-"""
-Component functions.
-
-Usage:
- ./utils/base.py
-
-Author:
- Peter Rigali - 2022-03-10
-"""
 from typing import Union
-from pyjr.utils.tools import _unique_values, _search_dic_values, _round_to, _to_metatype
+from pyjr.utils.tools.clean import _mtype, _round
+from pyjr.utils.tools.general import _unique_values
+from pyjr.utils.tools.dic import _search_dic_values
 
 
 # Internal Math Functions
@@ -70,7 +63,7 @@ def _mean(data: Union[list, tuple]) -> float:
     return sum(data) / data.__len__()
 
 
-def _variance(data: Union[list, tuple], ddof: int = 1) -> float:
+def _var(data: Union[list, tuple], ddof: int = 1) -> float:
     """
     Find the variance value of a list.
 
@@ -98,7 +91,7 @@ def _std(data: Union[list, tuple], ddof: int = 1) -> float:
     :rtype: float.
     :note: *None*
     """
-    return _variance(data=data, ddof=ddof) ** .5
+    return _var(data=data, ddof=ddof) ** .5
 
 
 def _sum(data: Union[list, tuple]) -> float:
@@ -145,14 +138,14 @@ def _mode(data: Union[list, tuple]) -> float:
     :note: *None*
     """
     count_dic = _unique_values(data=data, count=True)
-    count_dic_values = _to_metatype(data=count_dic.values())
+    count_dic_values = _mtype(d=count_dic.values())
     dic_max = _max(count_dic_values)
     lst = []
     for i in count_dic_values:
         val = _search_dic_values(dic=count_dic, item=dic_max)
         lst.append((val, i))
         # del count_dic[val]
-        count_dic_values = _to_metatype(data=count_dic.values())
+        count_dic_values = _mtype(d=count_dic.values())
 
     first_val, second_val = lst[0][0], lst[0][1]
     equal_lst = [i[0] for i in lst if second_val == i[1]]
@@ -196,7 +189,7 @@ def _kurtosis(data: Union[list, tuple]) -> float:
     return (((_sum(data=[i - mu for i in data])**4) / data.__len__()) / stdn) - 3
 
 
-def _percentile(data: Union[list, tuple], q: float) -> float:
+def _perc(data: Union[list, tuple], q: float) -> float:
     """
     Find the percentile value of a list.
 
@@ -208,15 +201,15 @@ def _percentile(data: Union[list, tuple], q: float) -> float:
     rtype: float.
     :note: *None*
     """
-    data = _round_to(data=[item * 1000.0 for item in data], val=1)
-    ind = _round_to(data=data.__len__() * q, val=1)
+    data = _round(d=[item * 1000.0 for item in data], v=1)
+    ind = _round(d=data.__len__() * q, v=1)
     data.sort()
     for item in data:
         if item >= data[ind]:
             return item / 1000.0
 
 
-def _percentiles(data: Union[list, tuple], q_lst: Union[list, tuple] = (0.159, 0.841)):
+def _percs(data: Union[list, tuple], q_lst: Union[list, tuple] = (0.159, 0.841)):
     """
     Calculate various percentiles for a list.
 
@@ -227,4 +220,4 @@ def _percentiles(data: Union[list, tuple], q_lst: Union[list, tuple] = (0.159, 0
     :return: A group of stats.
     :note: *None*
     """
-    return (_percentile(data=data, q=q) for q in q_lst)
+    return (_perc(data=data, q=q) for q in q_lst)

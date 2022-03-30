@@ -11,9 +11,10 @@ from dataclasses import dataclass
 from pandas import DataFrame
 import numpy as np
 from scipy.stats import kstest, normaltest, shapiro
-from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile
-from pyjr.utils.base import _percentiles, _range
-from pyjr.utils.tools import _unique_values, _check_na, _prep, _to_metatype
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc
+from pyjr.utils.tools.math import _percs, _range
+from pyjr.utils.tools.clean import _nan, _prep, _mtype
+from pyjr.utils.tools.general import _unique_values
 
 
 @dataclass
@@ -54,8 +55,7 @@ class Data:
         self.name = None
         if name:
             self.name = name
-        self.data = _prep(data=data, dtype=dtype, na_handling=na_handling, std_value=std_value,
-                          median_value=median_value, cap_zero=cap_zero, ddof=ddof)
+        self.data = _prep(d=data, dtype=dtype, na=na_handling)
         self.unique = None
         if unique:
             self.unique = _unique_values(data=self.data, count=False)
@@ -66,15 +66,15 @@ class Data:
             self.mean = _mean(data=self.data)
             self.median = _median(data=self.data)
             self.mode = _mode(data=self.data)
-            self.var = _variance(data=self.data, ddof=ddof)
+            self.var = _var(data=self.data, ddof=ddof)
             self.std = _std(data=self.data, ddof=ddof)
-            self.lower, self.higher = _percentiles(data=self.data, q_lst=q_lst)
+            self.lower, self.higher = _percs(data=self.data, q_lst=q_lst)
             self.min = _min(data=self.data)
             self.max = _max(data=self.data)
             self.sum = _sum(data=self.data)
             self.skew = _skew(data=self.data)
             self.kurt = _kurtosis(data=self.data)
-            self.per = _percentile(data=self.data, q=0.75)
+            self.per = _perc(data=self.data, q=0.75)
             self.rang = _range(data=self.data)
         else:
             self.mean, self.median, self.mode, self.var, self.std = None, None, None, None, None
@@ -83,8 +83,8 @@ class Data:
 
         self.na = None
         if self.data.__len__() != data.__len__():
-            tup = _to_metatype(data=data, dtype='tuple')
-            _na_ind_lst = [ind for ind, val in enumerate(tup) if _check_na(value=val) == True]
+            tup = _mtype(d=data, dtype='tuple')
+            _na_ind_lst = [ind for ind, val in enumerate(tup) if _nan(v=val) == True]
             if _na_ind_lst.__len__() > 0:
                 _percent_na = _na_ind_lst.__len__() / self.len
                 self.na = {"index": _na_ind_lst, "percent": _percent_na}
@@ -102,7 +102,7 @@ class Data:
                 self.distribution['normal'] = True
 
     def add_percentile(self, q: float) -> float:
-        self.per = _percentile(data=self.data, q=q)
+        self.per = _perc(data=self.data, q=q)
         return self.per
 
     # Type Change Methods

@@ -14,7 +14,7 @@ import pandas as pd
 from scipy import stats
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools import _to_metatype
+from pyjr.utils.tools.clean import _mtype
 
 
 @dataclass
@@ -113,11 +113,11 @@ class Scatter:
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.name, dtype='list')
+                label_lst = _mtype(d=data.name, dtype='list')
             data = data.dataframe()
         elif isinstance(data, pd.DataFrame):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.columns, dtype='list')
+                label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, list):
             dic = {}
             for d in data:
@@ -127,7 +127,7 @@ class Scatter:
                 else:
                     dic[d.name] = d.data
             data = pd.DataFrame.from_dict(dic)
-            label_lst = _to_metatype(data=data.columns, dtype='list')
+            label_lst = _mtype(d=data.columns, dtype='list')
 
         # Get colors
         if color_lst is None:
@@ -147,7 +147,7 @@ class Scatter:
 
         # Get compare two
         if compare_two is True:
-            if _to_metatype(data=data.columns, dtype='tuple').__len__() >= 2:
+            if _mtype(d=data.columns, dtype='tuple').__len__() >= 2:
                 if ylabel is None:
                     ylabel = label_lst[1]
                 if xlabel is None:

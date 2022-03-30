@@ -8,8 +8,8 @@ Author:
  Peter Rigali - 2022-03-30
 """
 from dataclasses import dataclass
-from pyjr.utils.base import _min, _max, _mean, _variance, _std, _sum, _median, _mode, _skew, _kurtosis, _percentile, _range
-from pyjr.utils.tools import _check_na, _to_metatype, _replacement_value, _to_type, _empty
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc, _range
+from pyjr.utils.tools.clean import _nan, _mtype, _rval, _type, _empty
 
 
 @dataclass
@@ -35,23 +35,23 @@ class Stat:
         self.empty = empty
 
     def get(self, data, q: float = None):
-        dic = {'mean': _mean, 'min': _min, 'max': _max, 'var': _variance, 'std': _std, 'sum': _sum, 'median': _median,
-               'mode': _mode, 'skew': _skew, 'kurt': _kurtosis, 'percentile': _percentile, 'range': _range}
-        data = _to_metatype(data=data, dtype='list')
+        dic = {'mean': _mean, 'min': _min, 'max': _max, 'var': _var, 'std': _std, 'sum': _sum, 'median': _median,
+               'mode': _mode, 'skew': _skew, 'kurt': _kurtosis, 'percentile': _perc, 'range': _range}
+        data = _mtype(d=data, dtype='list')
         if self.empty:
-            if _empty(data=data):
+            if _empty(d=data):
                 return 0.0
         na = None
         for ind, val in enumerate(data):
-            if _check_na(value=val):
+            if _nan(v=val):
                 if na is None:
-                    na = _replacement_value(data=data, na_handling=self.na)
+                    na = _rval(d=data, na=self.na)
                 val = na
             data[ind] = val
         if q is not None and self.stat == 'percentile':
-            return _percentile(data=data, q=q)
+            return _perc(data=data, q=q)
         else:
-            return _to_type(value=dic[self.stat](data=data), dtype=self.dtype)
+            return _type(v=dic[self.stat](data=data), dtype=self.dtype)
 
     def __repr__(self):
         return 'Stat'

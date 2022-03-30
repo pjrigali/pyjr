@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools import _to_metatype
-from pyjr.utils.base import _mean, _std, _sum, _median
+from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _mean, _std, _sum, _median
 
 
 @dataclass
@@ -98,11 +98,11 @@ class Bar:
         dic = False
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.name, dtype='list')
+                label_lst = _mtype(d=data.name, dtype='list')
             data = data.dataframe()
         elif isinstance(data, pd.DataFrame):
             if label_lst is None:
-                label_lst = _to_metatype(data=data.columns, dtype='list')
+                label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, list):
             dic = {}
             for d in data:
@@ -112,10 +112,10 @@ class Bar:
                 else:
                     dic[d.name] = d.data
             data = pd.DataFrame.from_dict(dic)
-            label_lst = _to_metatype(data=data.columns, dtype='list')
+            label_lst = _mtype(d=data.columns, dtype='list')
         elif isinstance(data, dict):
-            value_lst = _to_metatype(data=data.values(), dtype='list')
-            label_lst = _to_metatype(data=data.keys(), dtype='list')
+            value_lst = _mtype(d=data.values(), dtype='list')
+            label_lst = _mtype(d=data.keys(), dtype='list')
             dic = True
 
         if dic is False:
@@ -124,7 +124,7 @@ class Bar:
             # Get values
             value_lst = []
             for key in label_lst:
-                val = _to_metatype(data=data[key], dtype='list')
+                val = _mtype(d=data[key], dtype='list')
                 if value_string == 'sum':
                     val = _sum(data=val)
                 elif value_string == 'mean':
