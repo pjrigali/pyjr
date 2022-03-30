@@ -34,3 +34,5 @@ The package can be accessed via pip install.
   * This release adds documentation to the plot classes.
 * 0.0.5 - *Functional Release*
   * This release allows subpackages.
+* 0.0.6 - *Class Updates*
+  * This release adds Stat class, for rapid stat gathering.
