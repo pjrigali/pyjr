@@ -21,7 +21,7 @@ from pyts.decomposition import SingularSpectrumAnalysis
 from pyts.transformation import BOSS, ShapeletTransform
 from pyts.metrics import boss, dtw
 from scipy.stats import ks_2samp, ttest_ind
-from pyjr.utils.tools.math import _min
+from pyjr.utils._tools.math import _min
 
 
 @dataclass
@@ -140,11 +140,11 @@ class TimeSeries:
     def get_mape(self, other, min_value: float = 0.01) -> float:
         """Returns the MAPE between two lists or tuples."""
         if isinstance(self.data, (list, tuple)) and isinstance(other.data, (list, tuple)):
-            if _min(data=self.data) == 0:
+            if _min(d=self.data) == 0:
                 actual = np.array([i if i != 0.0 else min_value for i in self.data])
             else:
                 actual = self.data
-            if _min(data=other.data) == 0:
+            if _min(d=other.data) == 0:
                 pred = np.array([i if i != 0.0 else min_value for i in other.data])
             else:
                 pred = other.data

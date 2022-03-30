@@ -1,3 +1,12 @@
+"""
+Class functions.
+
+Usage:
+ ./utils/_tools/_class_functions.py
+
+Author:
+ Peter Rigali - 2022-03-30
+"""
 from typing import Union
 
 

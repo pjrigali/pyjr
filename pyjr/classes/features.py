@@ -13,10 +13,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from pyjr.classes.model_data import ModelingData
-from pyjr.utils.tools.math import _mean, _perc, _var, _sum, _std, _min
-from pyjr.utils.tools.clean import _round, _mtype
-from pyjr.utils.tools.general import _add_constant, _cent, _dis
-from pyjr.utils.tools.array import  _stack
+from pyjr.utils._tools.math import _mean, _perc, _var, _sum, _std, _min
+from pyjr.utils._tools.clean import _round, _mtype
+from pyjr.utils._tools.general import _add_constant, _cent, _dis
+from pyjr.utils._tools.array import  _stack
 
 
 @dataclass
@@ -57,14 +57,14 @@ class FeaturePerformance:
             new_data = val.tolist()
             if _min(new_data) >= 0:
                 if plus:
-                    ind = np.where(val <= _perc(data=new_data, q=per_dic[std_value]))[0]
+                    ind = np.where(val <= _perc(d=new_data, q=per_dic[std_value]))[0]
                 else:
-                    ind = np.where(val >= _perc(data=new_data, q=per_dic[-std_value]))[0]
+                    ind = np.where(val >= _perc(d=new_data, q=per_dic[-std_value]))[0]
             else:
                 if plus:
-                    ind = np.where(val <= _mean(data=new_data) + _std(data=new_data) * std_value)[0]
+                    ind = np.where(val <= _mean(d=new_data) + _std(d=new_data) * std_value)[0]
                 else:
-                    ind = np.where(val >= _mean(data=new_data) - _std(data=new_data) * std_value)[0]
+                    ind = np.where(val >= _mean(d=new_data) - _std(d=new_data) * std_value)[0]
             if return_ind:
                 dic[key] = tuple(ind.tolist())
             else:
@@ -77,13 +77,13 @@ class FeaturePerformance:
         dic = {val: self.modeling_data.x_data[:, ind] for ind, val in enumerate(self.modeling_data.x_data_names)}
         for key, val in dic.items():
             lst = val.tolist()
-            temp_var = _var(data=lst)
+            temp_var = _var(d=lst)
             dev_based = np.array([temp_var - _var(np.delete(lst, i)) for i, j in enumerate(lst)])
             if plus:
-                q = _perc(data=lst, q=per_dic[std_value])
+                q = _perc(d=lst, q=per_dic[std_value])
                 ind = np.where(dev_based <= q)[0]
             else:
-                q = _perc(data=lst, q=per_dic[-std_value])
+                q = _perc(d=lst, q=per_dic[-std_value])
                 ind = np.where(dev_based >= q)[0]
 
             if return_ind:
@@ -103,17 +103,17 @@ class FeaturePerformance:
             line_ys = []
             for i, j in enumerate(arr):
                 xx, yy = np.delete(arr[:, 0], i), np.delete(arr[:, 1], i)
-                w1 = (np.cov(xx, yy, ddof=1) / _var(xx, ddof=1))[0, 1]
+                w1 = (np.cov(xx, yy, ddof=1) / _var(xx, dof=1))[0, 1]
                 new_y = w1 * ran[:-1] + (-1 * _mean(xx) * w1 + _mean(yy))
                 mu_y = (mu_y + new_y) / 2
                 line_ys.append(new_y)
 
             reg_based = np.array([np.mean(np.square(mu_y - j)) for i, j in enumerate(line_ys)])
             if plus:
-                threshold = _perc(data=reg_based, q=per_dic[std_value])
+                threshold = _perc(d=reg_based, q=per_dic[std_value])
                 ind = np.where(reg_based <= threshold)[0]
             else:
-                threshold = _perc(data=reg_based, q=per_dic[-std_value])
+                threshold = _perc(d=reg_based, q=per_dic[-std_value])
                 ind = np.where(reg_based >= threshold)[0]
 
             if return_ind:
@@ -133,10 +133,10 @@ class FeaturePerformance:
             x_y_other_centers = np.array([_dis(_cent(x_lst=[arr[i][0]], y_lst=[arr[i][1]]), cent_other) for i in ran])
 
             if plus:
-                x_y_other_centers_std = _perc(data=x_y_other_centers, q=per_dic[std_value])
+                x_y_other_centers_std = _perc(d=x_y_other_centers, q=per_dic[std_value])
                 ind = np.where(x_y_other_centers <= x_y_other_centers_std)[0]
             else:
-                x_y_other_centers_std = _perc(data=x_y_other_centers, q=per_dic[-std_value])
+                x_y_other_centers_std = _perc(d=x_y_other_centers, q=per_dic[-std_value])
                 ind = np.where(x_y_other_centers >= x_y_other_centers_std)[0]
 
             if return_ind:
@@ -152,11 +152,11 @@ class FeaturePerformance:
         for key, val in dic.items():
             n, b = np.histogram(val, bins='sturges')
             if plus:
-                qn = _perc(data=val, q=per_dic[std_value])
+                qn = _perc(d=val, q=per_dic[std_value])
                 ind = np.where(n <= qn)[0]
                 bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
             else:
-                qn = _perc(data=val, q=per_dic[-std_value])
+                qn = _perc(d=val, q=per_dic[-std_value])
                 ind = np.where(n >= qn)[0]
                 bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
 
@@ -185,13 +185,13 @@ class FeaturePerformance:
             test_centers = (_cent([arr[ind, 0]], [arr[ind, 1]]) for ind in ran)
             distances = [_dis(c1=i, c2=j) for i in test_centers for j in test_centers]
             if plus:
-                threshold = _perc(data=distances, q=per_dic[std_value])
+                threshold = _perc(d=distances, q=per_dic[std_value])
                 count_dic = {}
                 for i, j in enumerate(arr):
                     temp = arr[i, :] <= threshold
                     count_dic[i] = _sum([1 for i in temp if i == True])
             else:
-                threshold = _perc(data=distances, q=per_dic[-std_value])
+                threshold = _perc(d=distances, q=per_dic[-std_value])
                 count_dic = {}
                 for i, j in enumerate(arr):
                     temp = arr[i, :] >= threshold
@@ -205,10 +205,10 @@ class FeaturePerformance:
                 else:
                     lst.append(i)
             if plus:
-                val1 = _perc(data=lst, q=per_dic[std_value])
+                val1 = _perc(d=lst, q=per_dic[std_value])
                 ind = np.where(np.array(lst) <= np.floor(val1))[0]
             else:
-                val1 = _perc(data=lst, q=per_dic[-std_value])
+                val1 = _perc(d=lst, q=per_dic[-std_value])
                 ind = np.where(np.array(lst) >= np.floor(val1))[0]
             if return_ind:
                 dic[key] = tuple(ind.tolist())
@@ -228,10 +228,10 @@ class FeaturePerformance:
             influence = model.get_influence()
             cooks = influence.cooks_distance
             if plus:
-                val1 = _perc(data=cooks[0], q=per_dic[std_value])
+                val1 = _perc(d=cooks[0], q=per_dic[std_value])
                 ind = np.where(cooks[0] <= val1)[0]
             else:
-                val1 = _perc(data=cooks[0], q=per_dic[-std_value])
+                val1 = _perc(d=cooks[0], q=per_dic[-std_value])
                 ind = np.where(cooks[0] >= val1)[0]
             if return_ind:
                 dic[key] = tuple(ind.tolist())

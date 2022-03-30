@@ -1,6 +1,15 @@
+"""
+DataFrame functions.
+
+Usage:
+ ./utils/_tools/dataframe.py
+
+Author:
+ Peter Rigali - 2022-03-30
+"""
 from typing import Union
 from pandas import DataFrame
-from pyjr.utils.tools.clean import _mtype
+from pyjr.utils._tools.clean import _mtype
 
 
 def slc(d: DataFrame, c: str, v: Union[float, int, str, object]) -> DataFrame:

@@ -15,8 +15,8 @@ import numpy as np
 import six
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools.clean import _mtype
-from pyjr.utils.tools.math import _min, _max
+from pyjr.utils._tools.clean import _mtype
+from pyjr.utils._tools.math import _min, _max
 
 
 @dataclass
@@ -111,7 +111,7 @@ class Table:
             for col in label_lst:
                 if type(data[col].iloc[0]) != str and col != 'index':
                     d = _mtype(d=data[col], dtype='list')
-                    _norm = plt.Normalize(_min(data=d) - 1, _max(data=d) + 1)
+                    _norm = plt.Normalize(_min(d=d) - 1, _max(d=d) + 1)
                     temp = plt.get_cmap(color_map)(_norm(data[col]))
                 elif type(data[col].iloc[0]) == str and col != 'index':
                     temp = [(1.0, 1.0, 1.0, 1.0), (0.945, 0.945, 0.949, 1.0)] * data.__len__()

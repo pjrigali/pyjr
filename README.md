@@ -16,9 +16,9 @@ The package can be accessed via pip install.
     pip install pyjr
 
 ### Future Work
-* Plot classes have not been vetted.
+* ~~Plot classes have not been vetted.~~
 * Add arg parse to plot classes.
-* Documentation of classes and functions.
+* ~~Documentation of classes and functions.~~
 * Update to TimeSeries, Tuning and Features.
 * Test all model classes and functions.
 * Add to self-contained functions.
@@ -36,3 +36,5 @@ The package can be accessed via pip install.
   * This release allows subpackages.
 * 0.0.6 - *Class Updates*
   * This release adds Stat class, for rapid stat gathering.
+* 0.0.7 - *Package Restructure*
+  * This release intro's a new file structure.

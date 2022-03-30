@@ -1,3 +1,12 @@
+"""
+Array functions.
+
+Usage:
+ ./utils/_tools/array.py
+
+Author:
+ Peter Rigali - 2022-03-30
+"""
 from typing import Optional
 import numpy as np
 

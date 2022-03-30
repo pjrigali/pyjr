@@ -1,3 +1,12 @@
+"""
+General functions.
+
+Usage:
+ ./utils/_tools/general.py
+
+Author:
+ Peter Rigali - 2022-03-30
+"""
 from typing import Union, List
 import numpy as np
 

@@ -12,10 +12,10 @@ from typing import Union, Optional
 from pandas import Series
 import numpy as np
 from pyjr.classes.data import Data
-from pyjr.utils.tools.clean import _prep, _type, _mtype, _rval, _rnan, _replace_na, _empty
-from pyjr.utils.tools.math import _perc, _var, _mean, _sum
-from pyjr.utils.tools.array import _stack
-from pyjr.utils.tools.general import _dis, _cent, _unique_values
+from pyjr.utils._tools.clean import _prep, _type, _mtype, _rval, _rnan, _replace_na, _empty
+from pyjr.utils._tools.math import _perc, _var, _mean, _sum
+from pyjr.utils._tools.array import _stack
+from pyjr.utils._tools.general import _dis, _cent, _unique_values
 
 
 def _clean(data, dtype, na):
@@ -110,9 +110,9 @@ def outlier_std(data, plus: bool = True, std_value: int = 2, return_ind: bool = 
     new_data = np.array(data.data)
     if data.min >= 0:
         if plus:
-            ind = np.where(new_data <= _perc(data=data.data, q=per_dic[std_value]))[0]
+            ind = np.where(new_data <= _perc(d=data.data, q=per_dic[std_value]))[0]
         else:
-            ind = np.where(new_data >= _perc(data=data.data, q=per_dic[-std_value]))[0]
+            ind = np.where(new_data >= _perc(d=data.data, q=per_dic[-std_value]))[0]
     else:
         if plus:
             ind = np.where(new_data <= data.mean + data.std * std_value)[0]
@@ -149,14 +149,14 @@ def outlier_var(data: Data, plus: Optional[bool] = True, std_value: int = 2,
     """
     per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
     lst = data.data
-    temp_var = _var(data=lst, ddof=1)
-    dev_based = np.array([temp_var - _var(data=np.delete(lst, i), ddof=1) for i, j in enumerate(lst)])
+    temp_var = _var(d=lst, dof=1)
+    dev_based = np.array([temp_var - _var(d=np.delete(lst, i), dof=1) for i, j in enumerate(lst)])
 
     if plus:
-        q = _perc(data=lst, q=per_dic[std_value])
+        q = _perc(d=lst, q=per_dic[std_value])
         ind = np.where(dev_based <= q)[0]
     else:
-        q = _perc(data=lst, q=per_dic[-std_value])
+        q = _perc(d=lst, q=per_dic[-std_value])
         ind = np.where(dev_based >= q)[0]
 
     if return_ind:
@@ -196,17 +196,17 @@ def outlier_regression(x_data: Data, y_data: Data, plus: Optional[bool] = True, 
     line_ys = []
     for i, j in enumerate(arr):
         xx, yy = np.delete(arr[:, 0], i), np.delete(arr[:, 1], i)
-        w1 = (np.cov(xx, yy, ddof=1) / _var(xx, ddof=1))[0, 1]
+        w1 = (np.cov(xx, yy, ddof=1) / _var(xx, dof=1))[0, 1]
         new_y = w1 * ran[:-1] + (-1 * _mean(xx) * w1 + _mean(yy))
         mu_y = (mu_y + new_y) / 2
         line_ys.append(new_y)
 
     reg_based = np.array([np.mean(np.square(mu_y - j)) for i, j in enumerate(line_ys)])
     if plus:
-        threshold = _perc(data=reg_based, q=per_dic[std_value])
+        threshold = _perc(d=reg_based, q=per_dic[std_value])
         ind = np.where(reg_based <= threshold)[0]
     else:
-        threshold = _perc(data=reg_based, q=per_dic[-std_value])
+        threshold = _perc(d=reg_based, q=per_dic[-std_value])
         ind = np.where(reg_based >= threshold)[0]
 
     if return_ind:
@@ -246,10 +246,10 @@ def outlier_distance(x_data: Data, y_data: Data, plus: Optional[bool] = True, st
     x_y_other_centers = np.array([_dis(_cent(x_lst=[arr[i][0]], y_lst=[arr[i][1]]), cent_other) for i in ran])
 
     if plus:
-        x_y_other_centers_std = _perc(data=x_y_other_centers, q=per_dic[std_value])
+        x_y_other_centers_std = _perc(d=x_y_other_centers, q=per_dic[std_value])
         ind = np.where(x_y_other_centers <= x_y_other_centers_std)[0]
     else:
-        x_y_other_centers_std = _perc(data=x_y_other_centers, q=per_dic[-std_value])
+        x_y_other_centers_std = _perc(d=x_y_other_centers, q=per_dic[-std_value])
         ind = np.where(x_y_other_centers >= x_y_other_centers_std)[0]
 
     if return_ind:
@@ -284,11 +284,11 @@ def outlier_hist(data: Data, plus: Optional[bool] = True, std_value: int = 2, re
     n, b = np.histogram(arr, bins='sturges')
 
     if plus:
-        qn = _perc(data=data.data, q=per_dic[std_value])
+        qn = _perc(d=data.data, q=per_dic[std_value])
         ind = np.where(n <= qn)[0]
         bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
     else:
-        qn = _perc(data=data.data, q=per_dic[-std_value])
+        qn = _perc(d=data.data, q=per_dic[-std_value])
         ind = np.where(n >= qn)[0]
         bin_edges = np.array([(b[i], b[i + 1]) for i in range(len(b) - 1)])[ind]
 
@@ -338,7 +338,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
     distances = [_dis(c1=i, c2=j) for i in test_centers for j in test_centers]
 
     if plus:
-        threshold = _perc(data=distances, q=per_dic[std_value])
+        threshold = _perc(d=distances, q=per_dic[std_value])
         count_dic = {}
         for i, j in enumerate(arr):
             temp = arr[i, :] <= threshold
@@ -346,7 +346,7 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
             if _empty(d=v) is False:
                 count_dic[i] = _sum(v)
     else:
-        threshold = _perc(data=distances, q=per_dic[-std_value])
+        threshold = _perc(d=distances, q=per_dic[-std_value])
         count_dic = {}
         for i, j in enumerate(arr):
             temp = arr[i, :] >= threshold
@@ -361,10 +361,10 @@ def outlier_knn(x_data: Data, y_data: Data, plus: Optional[bool] = True, std_val
             lst.append(val)
 
     if plus:
-        val1 = _perc(data=lst, q=per_dic[std_value])
+        val1 = _perc(d=lst, q=per_dic[std_value])
         ind = np.where(np.array(lst) <= np.floor(val1))[0]
     else:
-        val1 = _perc(data=lst, q=per_dic[-std_value])
+        val1 = _perc(d=lst, q=per_dic[-std_value])
         ind = np.where(np.array(lst) >= np.floor(val1))[0]
 
     if return_ind:
@@ -383,10 +383,10 @@ def outlier_cooks_distance(x_data: Data, y_data: Data, plus: bool = True, std_va
     cooks = influence.cooks_distance
 
     if plus:
-        val1 = _perc(data=cooks[0], q=per_dic[std_value])
+        val1 = _perc(d=cooks[0], q=per_dic[std_value])
         ind = np.where(cooks[0] <= val1)[0]
     else:
-        val1 = _perc(data=cooks[0], q=per_dic[-std_value])
+        val1 = _perc(d=cooks[0], q=per_dic[-std_value])
         ind = np.where(cooks[0] >= val1)[0]
 
     if return_ind:

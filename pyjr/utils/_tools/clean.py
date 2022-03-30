@@ -1,3 +1,12 @@
+"""
+Cleaning functions.
+
+Usage:
+ ./utils/_tools/clean.py
+
+Author:
+ Peter Rigali - 2022-03-30
+"""
 from typing import Union
 from collections.abc import KeysView, ValuesView
 from pandas import Series, Index

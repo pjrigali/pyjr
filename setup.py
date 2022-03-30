@@ -12,7 +12,7 @@ def read_file(*parts):
 setup(
     name='pyjr',
     version='0.0.7',
-    packages=['pyjr', 'pyjr.classes', 'pyjr.models', 'pyjr.plot', 'pyjr.utils', 'pyjr.utils.tools'],
+    packages=['pyjr', 'pyjr.classes', 'pyjr.models', 'pyjr.plot', 'pyjr.utils'],
     author='Peter Rigali',
     author_email='peterjrigali@gmail.com',
     license='MIT',

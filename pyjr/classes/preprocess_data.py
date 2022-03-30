@@ -13,8 +13,8 @@ import math
 import numpy as np
 from pandas import DataFrame
 from pyjr.classes.data import Data
-from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc
-from pyjr.utils.tools.clean import _mtype, _check_type
+from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
+from pyjr.utils._tools.clean import _mtype, _check_type
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
 
 
@@ -61,8 +61,8 @@ class PreProcess:
 
     def add_running(self,  window: int, stat: str = "mean", q: float = 0.50):
         """Calc running statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _median,
-                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _perc}[stat]
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _med,
+                "mode": _mod, "skew": _skew, "kurt": _kurt, "percentile": _perc}[stat]
         ran = range(window, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat
@@ -70,16 +70,16 @@ class PreProcess:
             post = [calc(data=self.cleanData.data[i - window:i]) for i in ran]
         else:
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)
-            pre = [_perc(data=self.cleanData.data[:window], q=q)] * window
-            post = [_perc(data=self.cleanData.data[i - window:i], q=q) for i in ran]
+            pre = [_perc(d=self.cleanData.data[:window], q=q)] * window
+            post = [_perc(d=self.cleanData.data[i - window:i], q=q) for i in ran]
         self.data = _check_type(d=pre + post, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         return self
 
     def add_cumulative(self, stat: str = "mean", q: float = 0.75):
         """Calc cumulative statistics"""
-        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _median,
-                "mode": _mode, "skew": _skew, "kurt": _kurtosis, "percentile": _perc}[stat]
+        calc = {"min": _min, "max": _max, "mean": _mean, "var": _var, "std": _std, "sum": _sum, "median": _med,
+                "mode": _mod, "skew": _skew, "kurt": _kurt, "percentile": _perc}[stat]
         ran = range(1, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)

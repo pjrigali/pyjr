@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools.clean import _mtype
-from pyjr.utils.tools.math import _mean, _std, _sum, _median
+from pyjr.utils._tools.clean import _mtype
+from pyjr.utils._tools.math import _mean, _std, _sum, _med
 
 
 @dataclass
@@ -126,13 +126,13 @@ class Bar:
             for key in label_lst:
                 val = _mtype(d=data[key], dtype='list')
                 if value_string == 'sum':
-                    val = _sum(data=val)
+                    val = _sum(d=val)
                 elif value_string == 'mean':
-                    val = _mean(data=val)
+                    val = _mean(d=val)
                 elif value_string == 'median':
-                    val = _median(data=val)
+                    val = _med(d=val)
                 elif value_string == 'std':
-                    val = _std(data=val)
+                    val = _std(d=val)
                 value_lst.append(val)
 
         # Get colors

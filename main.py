@@ -54,31 +54,31 @@ if __name__ == '__main__':
     # Bar(data=[t, tttt, ttttt], limit=(0, 50), vert_hor=False, include_mu=True)
     # plt.show()
 
-    from pyjr.classes.model_data import ModelingData
-    model_data = ModelingData()
-    model_data.add_multiple_xdata(data=(t, tt, tttt)).add_ydata(data=ttt).add_ohe_data(data=ohe)
-    explained = model_data.add_pca()
+    # from pyjr.classes.model_data import ModelingData
+    # model_data = ModelingData()
+    # model_data.add_multiple_xdata(data=(t, tt, tttt)).add_ydata(data=ttt).add_ohe_data(data=ohe)
+    # explained = model_data.add_pca()
 
-    x_train, x_test, x_valid, y_train, y_test, y_valid = model_data.add_train_test_validate(train=0.70, test=0.20, valid=0.10)
-    y_balance = model_data.get_balance()
+    # x_train, x_test, x_valid, y_train, y_test, y_valid = model_data.add_train_test_validate(train=0.70, test=0.20, valid=0.10)
+    # y_balance = model_data.get_balance()
 
-    from pyjr.models.simple_regression import Regression
-    reg = Regression(x_data=t, y_data=tt)
+    # from pyjr.models.simple_regression import Regression
+    # reg = Regression(x_data=t, y_data=tt)
 
-    from pyjr.classes.features import FeaturePerformance
-    feature_data = FeaturePerformance(data=model_data).add_regression()
-    feature_data = FeaturePerformance(data=model_data).add_outlier_std().add_outlier_var().add_outlier_regression().add_outlier_hist().add_outlier_knn().add_outlier_cooks_distance()
-    out = FeaturePerformance(data=model_data).add_outlier_std().get_outliers()
+    # from pyjr.classes.features import FeaturePerformance
+    # feature_data = FeaturePerformance(data=model_data).add_regression()
+    # feature_data = FeaturePerformance(data=model_data).add_outlier_std().add_outlier_var().add_outlier_regression().add_outlier_hist().add_outlier_knn().add_outlier_cooks_distance()
+    # out = FeaturePerformance(data=model_data).add_outlier_std().get_outliers()
 
 
-    from pyjr.classes.timeseries import TimeSeries
-    ts = TimeSeries(data=t).get_dtw(data=tt)
+    # from pyjr.classes.timeseries import TimeSeries
+    # ts = TimeSeries(data=t).get_dtw(data=tt)
 
-    from pyjr.classes.tuning import Tune
-    from sklearn.linear_model import SGDClassifier
-    x, y = model_data.x_train, model_data.y_train.tolist()
-    model = SGDClassifier()
-    tune = Tune(model=model, data=model_data)
+    # from pyjr.classes.tuning import Tune
+    # from sklearn.linear_model import SGDClassifier
+    # x, y = model_data.x_train, model_data.y_train.tolist()
+    # model = SGDClassifier()
+    # tune = Tune(model=model, data=model_data)
 
     # @track
     # def test():
@@ -87,14 +87,14 @@ if __name__ == '__main__':
     #     return
     # u = test()
 
-    from pyjr.utils.simple import outlier_cooks_distance, outlier_knn, outlier_hist, outlier_distance, outlier_regression, outlier_var, outlier_std
-    c = outlier_cooks_distance(x_data=t, y_data=tt)
-    knn = outlier_knn(x_data=t, y_data=tt)
-    h = outlier_hist(data=t)
-    d = outlier_distance(x_data=t, y_data=tt)
-    rr = outlier_regression(x_data=t, y_data=tt)
-    v = outlier_var(data=t)
-    st = outlier_std(data=t)
+    # from pyjr.utils.simple import outlier_cooks_distance, outlier_knn, outlier_hist, outlier_distance, outlier_regression, outlier_var, outlier_std
+    # c = outlier_cooks_distance(x_data=t, y_data=tt)
+    # knn = outlier_knn(x_data=t, y_data=tt)
+    # h = outlier_hist(data=t)
+    # d = outlier_distance(x_data=t, y_data=tt)
+    # rr = outlier_regression(x_data=t, y_data=tt)
+    # v = outlier_var(data=t)
+    # st = outlier_std(data=t)
 
     # import inspect
     #

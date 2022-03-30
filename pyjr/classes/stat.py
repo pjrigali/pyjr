@@ -8,8 +8,8 @@ Author:
  Peter Rigali - 2022-03-30
 """
 from dataclasses import dataclass
-from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc, _range
-from pyjr.utils.tools.clean import _nan, _mtype, _rval, _type, _empty
+from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _range
+from pyjr.utils._tools.clean import _nan, _mtype, _rval, _type, _empty
 
 
 @dataclass
@@ -35,8 +35,8 @@ class Stat:
         self.empty = empty
 
     def get(self, data, q: float = None):
-        dic = {'mean': _mean, 'min': _min, 'max': _max, 'var': _var, 'std': _std, 'sum': _sum, 'median': _median,
-               'mode': _mode, 'skew': _skew, 'kurt': _kurtosis, 'percentile': _perc, 'range': _range}
+        dic = {'mean': _mean, 'min': _min, 'max': _max, 'var': _var, 'std': _std, 'sum': _sum, 'median': _med,
+               'mode': _mod, 'skew': _skew, 'kurt': _kurt, 'percentile': _perc, 'range': _range}
         data = _mtype(d=data, dtype='list')
         if self.empty:
             if _empty(d=data):
@@ -49,7 +49,7 @@ class Stat:
                 val = na
             data[ind] = val
         if q is not None and self.stat == 'percentile':
-            return _perc(data=data, q=q)
+            return _perc(d=data, q=q)
         else:
             return _type(v=dic[self.stat](data=data), dtype=self.dtype)
 

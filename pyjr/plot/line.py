@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools.clean import _mtype
+from pyjr.utils._tools.clean import _mtype
 
 
 @dataclass

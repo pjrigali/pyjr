@@ -11,10 +11,10 @@ from dataclasses import dataclass
 from pandas import DataFrame
 import numpy as np
 from scipy.stats import kstest, normaltest, shapiro
-from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _median, _mode, _skew, _kurtosis, _perc
-from pyjr.utils.tools.math import _percs, _range
-from pyjr.utils.tools.clean import _nan, _prep, _mtype
-from pyjr.utils.tools.general import _unique_values
+from pyjr.utils._tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
+from pyjr.utils._tools.math import _percs, _range
+from pyjr.utils._tools.clean import _nan, _prep, _mtype
+from pyjr.utils._tools.general import _unique_values
 
 
 @dataclass
@@ -63,19 +63,19 @@ class Data:
         self.len = self.data.__len__()
         self.dtype = dtype
         if stats and dtype in {"float": True, "int": True}:
-            self.mean = _mean(data=self.data)
-            self.median = _median(data=self.data)
-            self.mode = _mode(data=self.data)
-            self.var = _var(data=self.data, ddof=ddof)
-            self.std = _std(data=self.data, ddof=ddof)
-            self.lower, self.higher = _percs(data=self.data, q_lst=q_lst)
-            self.min = _min(data=self.data)
-            self.max = _max(data=self.data)
-            self.sum = _sum(data=self.data)
-            self.skew = _skew(data=self.data)
-            self.kurt = _kurtosis(data=self.data)
-            self.per = _perc(data=self.data, q=0.75)
-            self.rang = _range(data=self.data)
+            self.mean = _mean(d=self.data)
+            self.median = _med(d=self.data)
+            self.mode = _mod(d=self.data)
+            self.var = _var(d=self.data, dof=ddof)
+            self.std = _std(d=self.data, dof=ddof)
+            self.lower, self.higher = _percs(d=self.data, q_lst=q_lst)
+            self.min = _min(d=self.data)
+            self.max = _max(d=self.data)
+            self.sum = _sum(d=self.data)
+            self.skew = _skew(d=self.data)
+            self.kurt = _kurt(d=self.data)
+            self.per = _perc(d=self.data, q=0.75)
+            self.rang = _range(d=self.data)
         else:
             self.mean, self.median, self.mode, self.var, self.std = None, None, None, None, None
             self.lower, self.higher, self.min, self.max, self.sum = None, None, None, None, None
@@ -102,7 +102,7 @@ class Data:
                 self.distribution['normal'] = True
 
     def add_percentile(self, q: float) -> float:
-        self.per = _perc(data=self.data, q=q)
+        self.per = _perc(d=self.data, q=q)
         return self.per
 
     # Type Change Methods

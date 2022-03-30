@@ -15,8 +15,8 @@ import numpy as np
 from scipy.stats import norm
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
-from pyjr.utils.tools.clean import _mtype
-from pyjr.utils.tools.math import _mean, _std
+from pyjr.utils._tools.clean import _mtype
+from pyjr.utils._tools.math import _mean, _std
 
 
 @dataclass
@@ -183,7 +183,7 @@ class Histogram:
         ax1 = None
         if include_norm:
             d = _mtype(d=data[include_norm], dtype='list')
-            _mu, _s = norm.fit(np.random.normal(_mean(data=d), _std(data=d), d.__len__()))
+            _mu, _s = norm.fit(np.random.normal(_mean(d=d), _std(d=d), d.__len__()))
             xmin, xmax = plt.xlim()
             x = np.linspace(xmin, xmax, 100)
             ax1 = ax.twinx()
