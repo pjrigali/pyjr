@@ -179,6 +179,8 @@ def _skew(d: Union[list, tuple]) -> float:
     mu, stdn, length = _mean(d=d), _std(d=d, dof=1) ** 3, d.__len__()
     if stdn == 0:
         stdn = mu / 2.0
+        if stdn == 0:
+            return 0.0
     return (((_sum(d=[i - mu for i in d]) ** 3) / length) / stdn) * ((length * (length - 1)) ** .5) / (length - 2)
 
 
@@ -195,6 +197,8 @@ def _kurt(d: Union[list, tuple]) -> float:
     mu, stdn = _mean(d=d), _std(d=d, dof=1) ** 4
     if stdn == 0:
         stdn = mu / 2
+        if stdn == 0:
+            return 0.0
     return (((_sum(d=[i - mu for i in d]) ** 4) / d.__len__()) / stdn) - 3
 
 

@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from pandas import DataFrame
 import numpy as np
 from scipy.stats import kstest, normaltest, shapiro
-from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
-from pyjr.utils.tools.math import _percs, _range
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _percs, _range
+from pyjr.utils.tools.math import _gini
 from pyjr.utils.tools.clean import _nan, _prep, _mtype
 from pyjr.utils.tools.general import _unique_values
 
@@ -45,7 +45,7 @@ class Data:
     """
 
     __slots__ = ("name", "data", "len", "unique", "dtype", "mean", "median", "mode", "var", "std", "lower", "higher",
-                 "min", "max", "sum", "skew", "kurt", "per", "rang", "distribution", "na")
+                 "min", "max", "sum", "skew", "kurt", "per", "rang", "distribution", "na", "gini")
 
     def __init__(self, data = None, name: str = None, na_handling: str = 'none',
                  dtype: str = 'float', cap_zero: bool = True, std_value: int = 3, median_value: float = 0.023,
@@ -76,10 +76,11 @@ class Data:
             self.kurt = _kurt(d=self.data)
             self.per = _perc(d=self.data, q=0.75)
             self.rang = _range(d=self.data)
+            self.gini = _gini(d=self.data)
         else:
             self.mean, self.median, self.mode, self.var, self.std = None, None, None, None, None
             self.lower, self.higher, self.min, self.max, self.sum = None, None, None, None, None
-            self.skew, self.kurt, self.per, self.rang = None, None, None, None
+            self.skew, self.kurt, self.per, self.rang, self.gini = None, None, None, None, None
 
         self.na = None
         if self.data.__len__() != data.__len__():

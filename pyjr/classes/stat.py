@@ -8,7 +8,7 @@ Author:
  Peter Rigali - 2022-03-30
 """
 from dataclasses import dataclass
-from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _range
+from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc, _range, _gini
 from pyjr.utils.tools.clean import _nan, _mtype, _rval, _type, _empty
 
 
@@ -36,7 +36,7 @@ class Stat:
 
     def get(self, data, q: float = None):
         dic = {'mean': _mean, 'min': _min, 'max': _max, 'var': _var, 'std': _std, 'sum': _sum, 'median': _med,
-               'mode': _mod, 'skew': _skew, 'kurt': _kurt, 'percentile': _perc, 'range': _range}
+               'mode': _mod, 'skew': _skew, 'kurt': _kurt, 'percentile': _perc, 'range': _range, 'gini': _gini}
         data = _mtype(d=data, dtype='list')
         if self.empty:
             if _empty(d=data):
@@ -51,7 +51,7 @@ class Stat:
         if q is not None and self.stat == 'percentile':
             return _perc(d=data, q=q)
         else:
-            return _type(v=dic[self.stat](data=data), dtype=self.dtype)
+            return _type(v=dic[self.stat](d=data), dtype=self.dtype)
 
     def __repr__(self):
         return 'Stat'
