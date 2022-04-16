@@ -7,7 +7,7 @@ Usage:
 Author:
  Peter Rigali - 2022-03-30
 """
-from typing import Optional
+from typing import Optional, Union
 import numpy as np
 
 
@@ -45,3 +45,11 @@ def _add_column(arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray:
         new_arr[:, i] = arr1[:, i]
     new_arr[:, new_arr.shape[1] - 1] = arr2[:, 0]
     return new_arr
+
+
+def _ts_arr(data: Union[list, tuple]) -> np.ndarray:
+    """Builds ts_data required for pyts"""
+    arr = np.ones((data.__len__(), 2))
+    arr[:, 0] = data
+    arr[:, 1] = list(range(data.__len__()))
+    return arr.reshape((2, data.__len__()))
