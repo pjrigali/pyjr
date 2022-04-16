@@ -70,7 +70,12 @@ class Table:
                  color_map: str = 'Greens',
                  font_color: str = 'black',
                  show: bool = False,
+                 ax=None,
                  ):
+
+        if ax is None:
+            ax = plt.gca()
+
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             data = data.dataframe()
@@ -124,7 +129,8 @@ class Table:
             colours = np.array(pd.DataFrame(color_lst).T)
 
         # Start plot
-        fig, ax = plt.subplots(figsize=fig_size)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
         table = ax.table(cellText=data.values, colLabels=label_lst, colWidths=col_widths, loc='center',
                          cellLoc='center', cellColours=colours)
         table.set_fontsize(font_size)
@@ -143,7 +149,7 @@ class Table:
         ax.axis('off')
         fig.tight_layout()
 
-        self.ax = ax
+        self.ax = (ax)
 
         if show:
             plt.show()

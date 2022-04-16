@@ -93,7 +93,12 @@ class Bar:
                  grid_dash_sequence: tuple = (1, 3),
                  fig_size: tuple = (10, 7),
                  show: bool = False,
+                 ax=None,
                  ):
+
+        if ax is None:
+            ax = plt.gca()
+
         # Parse input data
         dic = False
         if isinstance(data, (Data, PreProcess)):
@@ -149,7 +154,8 @@ class Bar:
             color_lst.append(mu_color)
 
         # Start plot
-        fig, ax = plt.subplots(figsize=fig_size)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
 
         # Plot values
         if vert_hor:
@@ -168,7 +174,7 @@ class Bar:
         if grid:
             ax.grid(alpha=grid_alpha, linestyle=(0, grid_dash_sequence), linewidth=grid_lineweight)
 
-        self.ax = ax
+        self.ax = (ax)
 
         if show:
             plt.show()

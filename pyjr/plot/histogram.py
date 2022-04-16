@@ -95,7 +95,7 @@ class Histogram:
         location can be: {'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left',
                           'center right', 'lower center', 'upper center', 'center'}
     """
-    __slots__ = ("ax", "ax1")
+    __slots__ = "ax"
 
     def __init__(self,
                  data: Union[pd.DataFrame, Data, PreProcess, List[Union[Data, PreProcess]]],
@@ -129,7 +129,12 @@ class Histogram:
                  legend_transparency: float = 0.75,
                  legend_location: str = 'lower right',
                  show: bool = False,
+                 ax=None,
                  ):
+
+        if ax is None:
+            ax = plt.gca()
+
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
@@ -157,7 +162,8 @@ class Histogram:
                 color_lst = [plt.get_cmap('viridis')(1. * i / label_lst.__len__()) for i in range(label_lst.__len__())]
 
         # Start plot
-        fig, ax = plt.subplots(figsize=fig_size)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
             data = data[limit[0]:limit[1]]
@@ -180,21 +186,21 @@ class Histogram:
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
 
         # Plot normal curve
-        ax1 = None
         if include_norm:
             d = _mtype(d=data[include_norm], dtype='list')
             _mu, _s = norm.fit(np.random.normal(_mean(d=d), _std(d=d), d.__len__()))
-            xmin, xmax = plt.xlim()
+            xmin, xmax = ax.get_xlim()
             x = np.linspace(xmin, xmax, 100)
             ax1 = ax.twinx()
-            ax1.plot(x, norm.pdf(x, _mu, _s), color=norm_color, linewidth=norm_lineweight, linestyle='--',
-                     label="{} Fit Values: mu {:.2f} and std {:.2f}".format(include_norm, _mu, _s))
+            ax1.plot(x, norm.pdf(x, _mu, _s), color=norm_color, linewidth=norm_lineweight,
+                     linestyle='--', label="mu {:.2f} and std {:.2f}".format(_mu, _s))
             ax1.set_ylabel(norm_ylabel, color=norm_color)
             ax1.tick_params(axis='y', labelcolor=norm_color)
             ax1.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=norm_legend_location, frameon=True)
 
-        self.ax = ax
-        self.ax1 = ax1
+        self.ax = (ax)
+        if include_norm:
+            self.ax = (ax, ax1)
 
         if show:
             plt.show()

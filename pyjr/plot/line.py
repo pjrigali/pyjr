@@ -14,6 +14,7 @@ import pandas as pd
 from pyjr.classes.data import Data
 from pyjr.classes.preprocess_data import PreProcess
 from pyjr.utils.tools.clean import _mtype
+from pyjr.utils.tools.math import _perc, _min, _max
 
 
 @dataclass
@@ -93,7 +94,16 @@ class Line:
                  legend_transparency: float = 0.75,
                  legend_location: str = 'lower right',
                  show: bool = False,
+                 ax=None,
+                 include_quant: Union[str, list] = None,
+                 quant_lineweight: Union[float, list] = 2.0,
+                 quant_color: Union[str, list] = 'r',
+                 quant_alpha: Union[list, float, int] = 1.0,
                  ):
+
+        if ax is None:
+            ax = plt.gca()
+
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
@@ -121,16 +131,40 @@ class Line:
                 color_lst = [plt.get_cmap('viridis')(1. * i / label_lst.__len__()) for i in range(label_lst.__len__())]
 
         # Start Plot
-        fig, ax = plt.subplots(figsize=fig_size)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
             data = data[limit[0]:limit[1]]
 
         # Get plots
         count = 0
+        per_dic = {-3: 0.001, -2: 0.023, -1: 0.159, 0: 0.50, 1: 0.841, 2: 0.977, 3: 0.999}
+        if include_quant is not None:
+            mm = _min(_mtype(d=data.index, dtype='list'))
+            mx = _max(_mtype(d=data.index, dtype='list'))
+
+            if quant_lineweight is None:
+                quant_lineweight = [0.75, 1.0, 1.5, 2.0, 1.5, 1.0, 0.75]
+
+            if isinstance(quant_lineweight, float):
+                quant_lineweight = [quant_lineweight] * 7
+
+            if isinstance(quant_alpha, float):
+                quant_alpha = [quant_alpha] * 7
+
+            if isinstance(quant_color, str):
+                quant_color = [quant_color] * 7
+
         for name in label_lst:
             d = data[name]
             ax.plot(d, color=color_lst[count], label=name)
+            if include_quant is not None and name in include_quant:
+                tcount = 0
+                for key, val in per_dic.items():
+                    ax.hlines(y=_perc(d=d, q=val), xmin=mm, xmax=mx, colors=quant_color[tcount],
+                              alpha=quant_alpha[tcount], linewidth=quant_lineweight[tcount], linestyles='--')
+                    tcount += 1
             count += 1
         ax.set_ylabel(ylabel, color=ylabel_color, fontsize=ylabel_size)
         ax.tick_params(axis='y', labelcolor=ylabel_color)
@@ -142,7 +176,7 @@ class Line:
         ax.set_xlabel(xlabel, color=xlabel_color, fontsize=xlabel_size)
         ax.legend(fontsize=legend_fontsize, framealpha=legend_transparency, loc=legend_location, frameon=True)
 
-        self.ax = ax
+        self.ax = (ax)
 
         if show:
             plt.show()

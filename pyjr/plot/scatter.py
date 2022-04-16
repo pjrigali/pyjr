@@ -109,7 +109,12 @@ class Scatter:
                  compare_two: Union[Tuple[str], bool] = None,
                  y_limit: Union[list, tuple] = None,
                  show: bool = False,
+                 ax=None,
                  ):
+
+        if ax is None:
+            ax = plt.gca()
+
         # Parse input data
         if isinstance(data, (Data, PreProcess)):
             if label_lst is None:
@@ -140,7 +145,8 @@ class Scatter:
             regression_line_color = 'r'
 
         # Start plot
-        fig, ax = plt.subplots(figsize=fig_size)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=fig_size)
 
         if limit:
             data = data[limit[0]:limit[1]]
@@ -200,7 +206,7 @@ class Scatter:
         if y_limit:
             ax.set_ylim(bottom=y_limit[0], top=y_limit[1])
 
-        self.ax = ax
+        self.ax = (ax)
 
         if show:
             plt.show()
