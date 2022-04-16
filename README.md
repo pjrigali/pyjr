@@ -42,3 +42,5 @@ The package can be accessed via pip install.
   * Hotfix Release
 * 0.0.9 - *Another Hot Fix*
   * Forgot to add folder to setup.py.
+* 0.1.0 - *Functionality Updates*
+  * Add ax to plots, cleaned up typing and tested models.
