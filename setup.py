@@ -11,7 +11,7 @@ def read_file(*parts):
 
 setup(
     name='pyjr',
-    version='0.1.0',
+    version='0.1.1',
     packages=['pyjr', 'pyjr.classes', 'pyjr.models', 'pyjr.plot', 'pyjr.utils', 'pyjr.utils.tools'],
     author='Peter Rigali',
     author_email='peterjrigali@gmail.com',
