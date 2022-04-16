@@ -13,10 +13,17 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from pyjr.classes.model_data import ModelingData
+from pyjr.classes.data import Data
 from pyjr.utils.tools.math import _mean, _perc, _var, _sum, _std, _min
 from pyjr.utils.tools.clean import _round, _mtype
 from pyjr.utils.tools.general import _add_constant, _cent, _dis
-from pyjr.utils.tools.array import  _stack
+from pyjr.utils.tools.array import _stack
+import statsmodels.api as sm
+from statsmodels.graphics.gofplots import qqline
+import matplotlib.pyplot as plt
+from pyjr.plot.histogram import Histogram
+from pyjr.plot.line import Line
+from pyjr.plot.scatter import Scatter
 
 
 @dataclass
@@ -249,3 +256,43 @@ class FeaturePerformance:
             temp = [i for i in ran if i not in results]
             dic[key] = tuple(self.modeling_data.x_data[:, key_dic[key]][temp].tolist())
         return dic
+
+    def get_feature_plot(self):
+        """Returns a series of plots describing the features."""
+        data_lst = []
+        for ind, val in enumerate(self.modeling_data.x_data_names):
+            data_lst.append(Data(data=self.modeling_data.x_data[:, ind], name=val))
+
+        # data_lst = [t, tt, tttt]
+        h = 4 * data_lst.__len__()
+        fig, axes = plt.subplots(nrows=data_lst.__len__(), ncols=4, figsize=(16, h))
+        fig.suptitle('Feature Characteristics', fontsize='xx-large')
+        count = 0
+        for data in data_lst:
+            Histogram(data=data, ax=axes[count, 0], title_size='large', ylabel=data.name, ylabel_size='x-large',
+                      include_norm=data.name, norm_color="tab:blue", norm_lineweight=2)
+            pp = sm.ProbPlot(data.array())
+            qq = pp.qqplot(marker='.', markerfacecolor='tab:orange', markeredgecolor='tab:orange', alpha=0.3,
+                           ax=axes[count, 1], markersize=15)
+            qqline(ax=axes[count, 1], line='r', x=pp.theoretical_quantiles, y=pp.sample_quantiles, color='tab:blue',
+                   linestyle='--', linewidth=2, alpha=1)
+            axes[count, 1].set_title('Q-Q Plot', fontsize='large')
+            axes[count, 1].set_xlabel('')
+            axes[count, 1].set_ylabel('')
+            axes[count, 1].grid(alpha=0.75, linestyle=(0, (3, 3)), linewidth=0.5)
+            Line(data=data, ax=axes[count, 2], title_size='large', include_quant=data.name, quant_color='tab:blue',
+                 quant_lineweight=[0.75, 1.0, 1.5, 2.0, 1.5, 1.0, 0.75])
+            Scatter(data=data, ax=axes[count, 3], title_size='large', regression_line=data.name,
+                    regression_line_color='tab:blue', regression_line_lineweight=2)
+            count += 1
+        ratio = 1.0
+        cols = [0, 1, 2, 3]
+        wid = list(range(data_lst.__len__()))
+        for w in wid:
+            for c in cols:
+                x_left, x_right = axes[w, c].get_xlim()
+                y_low, y_high = axes[w, c].get_ylim()
+                axes[w, c].set_aspect(abs((x_right - x_left) / (y_low - y_high)) * ratio)
+        plt.tight_layout(pad=1.0, w_pad=1.0, h_pad=1.0)
+        plt.show()
+        return
