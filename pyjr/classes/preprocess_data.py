@@ -16,6 +16,8 @@ from pyjr.classes.data import Data
 from pyjr.utils.tools.math import _min, _max, _mean, _var, _std, _sum, _med, _mod, _skew, _kurt, _perc
 from pyjr.utils.tools.clean import _mtype, _check_type
 from sklearn.preprocessing import power_transform, quantile_transform, robust_scale
+from feature_engine.outliers import Winsorizer, OutlierTrimmer
+from feature_engine.discretisation import EqualFrequencyDiscretiser, EqualWidthDiscretiser, DecisionTreeDiscretiser
 
 
 @dataclass
@@ -35,11 +37,11 @@ class PreProcess:
         if max_min_val == 0.0:
             max_min_val = 1.0
         if stat == "mean":
-            lst = ((val - self.cleanData.mean) / max_min_val for val in self.cleanData.data)
+            lst = [(val - self.cleanData.mean) / max_min_val for val in self.cleanData.data]
         elif stat == "min":
-            lst = ((val - self.cleanData.min) / max_min_val for val in self.cleanData.data)
+            lst = [(val - self.cleanData.min) / max_min_val for val in self.cleanData.data]
         elif stat == "median":
-            lst = ((val - self.cleanData.median) / max_min_val for val in self.cleanData.data)
+            lst = [(val - self.cleanData.median) / max_min_val for val in self.cleanData.data]
         else:
             raise AttributeError('Stat must be (mean, min, median)')
         self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
@@ -50,10 +52,12 @@ class PreProcess:
     def add_standardize(self, stat: str = "mean"):
         """Standardize data, with a mean of 0 and std of 1"""
         if stat == "mean":
-            lst = ((item - self.cleanData.mean) / self.cleanData.std for item in self.cleanData.data)
+            lst = [(item - self.cleanData.mean) / self.cleanData.std for item in self.cleanData.data]
         elif stat == "median":
             temp_std = (self.cleanData.higher - self.cleanData.median)
-            lst = ((item - self.cleanData.median) / temp_std for item in self.cleanData.data)
+            lst = [(item - self.cleanData.median) / temp_std for item in self.cleanData.data]
+        else:
+            raise AttributeError('stat must be {mean, median}')
         self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         self.name = self.cleanData.name + "_standardize_" + stat
@@ -66,8 +70,8 @@ class PreProcess:
         ran = range(window, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat
-            pre = [calc(data=self.cleanData.data[:window])] * window
-            post = [calc(data=self.cleanData.data[i - window:i]) for i in ran]
+            pre = [calc(d=self.cleanData.data[:window])] * window
+            post = [calc(d=self.cleanData.data[i - window:i]) for i in ran]
         else:
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)
             pre = [_perc(d=self.cleanData.data[:window], q=q)] * window
@@ -83,16 +87,19 @@ class PreProcess:
         ran = range(1, self.cleanData.len)
         if stat != "percentile":
             self.name = self.cleanData.name + "_running_" + stat + "_" + str(q)
-            lst = [0.0] + [calc(data=self.cleanData.data[:i]) for i in ran]
+            lst = [0.0] + [calc(d=self.cleanData.data[:i]) for i in ran]
         else:
             self.name = self.cleanData.name + "_running_" + stat
-            lst = [0.0] + [calc(data=self.cleanData.data[:i], q=q) for i in ran]
+            if stat == 'percentile':
+                lst = [0.0] + [_perc(d=self.cleanData.data[:i], q=q) for i in ran]
+            else:
+                lst = [0.0] + [calc(d=self.cleanData.data[:i]) for i in ran]
         self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.len = self.data.__len__()
         return self
 
     def add_log(self, constant: float = .01):
-        lst = (math.log(i + constant) for i in self.cleanData.data)
+        lst = [math.log(i + constant) for i in self.cleanData.data]
         self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_log"
         self.len = self.data.__len__()
@@ -107,7 +114,7 @@ class PreProcess:
            lambda = 1.0 is no transform."""
         if self.cleanData is None:
             return self
-        lst = ((i ** lam - 1) / lam for i in self.cleanData.data)
+        lst = [(i ** lam - 1) / lam for i in self.cleanData.data]
         self.data = _check_type(d=lst, dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_box_cox_" + str(lam)
         self.len = self.data.__len__()
@@ -116,7 +123,7 @@ class PreProcess:
     def add_sklearn_box_cox(self, standard: bool = True):
         """Only postive values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='box-cox', standardize=standard)
-        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=[i[0] for i in _mtype(d=arr)], dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_box_cox"
         self.len = self.data.__len__()
         return self
@@ -124,7 +131,7 @@ class PreProcess:
     def add_sklearn_yeo_johnson(self, standard: bool = True):
         """Postive values and negative values"""
         arr = power_transform(X=self.cleanData.array(axis=1), method='yeo-johnson', standardize=standard)
-        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=[i[0] for i in _mtype(d=arr)], dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_yeo_johnson"
         self.len = self.data.__len__()
         return self
@@ -134,7 +141,7 @@ class PreProcess:
         """Also accepts 'normal' """
         arr = quantile_transform(X=self.cleanData.array(axis=1), n_quantiles=n_quantiles,
                                  output_distribution=output_distribution)
-        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=[i[0] for i in _mtype(d=arr)], dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_quantile_" + str(n_quantiles) + "_" + output_distribution
         self.len = self.data.__len__()
         return self
@@ -144,12 +151,42 @@ class PreProcess:
         """Recommended to not do before splitting"""
         arr = robust_scale(X=self.cleanData.array(axis=1), with_centering=with_centering, with_scaling=with_scaling,
                            quantile_range=quantile_range)
-        self.data = _check_type(d=(i[0] for i in _mtype(d=arr)), dtype=self.cleanData.dtype)
+        self.data = _check_type(d=[i[0] for i in _mtype(d=arr)], dtype=self.cleanData.dtype)
         self.name = self.cleanData.name + "_sklearn_robust"
         self.len = self.data.__len__()
         return self
 
-    def add_constant(self, columns: int = 2, other: Data = None):
+    def add_capping(self, c_m: str = 'gaussian', tail: str = 'right', fold: float = 3.0):
+        """Caps items outliers."""
+        # {'gaussian', 'iqr', 'quantiles'}
+        # {'right', 'left', 'both}
+        self.data = Winsorizer(capping_method=c_m, tail=tail, fold=fold).fit_transform(self.data)
+        return self
+
+    def add_cap_fill(self, c_m: str = 'gaussian', tail: str = 'right', fold: float = 3.0):
+        """Caps and fills holes with maximum and minimum values."""
+        # {'gaussian', 'iqr', 'quantiles'}
+        # {'right', 'left', 'both}
+        self.data = OutlierTrimmer(capping_method=c_m, tail=tail, fold=fold).fit_transform(self.data)
+        return self
+
+    def add_freq_bins(self, bins: int = 10):
+        """Bins data based on count within each bin."""
+        self.data = EqualFrequencyDiscretiser(q=bins).fit_transform(self.data)
+        return self
+
+    def add_width_bins(self, bins: int = 10):
+        """Bins data based on equal width."""
+        self.data = EqualWidthDiscretiser(bins=bins).fit_transform(self.data)
+        return self
+
+    def add_tree_bins(self, cv: int = 10, scoring: str = 'neg_mean_squared_error'):
+        # https: // scikit - learn.org / stable / modules / model_evaluation.html
+        """Tree based binning, need to change scoring method depending on regression or classification."""
+        self.data = DecisionTreeDiscretiser(cv=cv, scoring=scoring).fit_transform(self.data)
+        return self
+
+    def add_constant(self, columns: int = 2, other = None):
         """Adds a column of 1's to the data"""
         if other:
             if other.len != self.cleanData.len:
@@ -163,6 +200,8 @@ class PreProcess:
                     name2 = self.cleanData.name
                 raise AttributeError("Lengths of the two Data's are different: " + name1 + " {}, " + name2 + " {})".format((other.len, self.cleanData.len)))
             else:
+                name1 = self.cleanData.name
+                name2 = other.name
                 arr = np.ones((self.cleanData.len, 2))
                 arr[:, 0] = self.cleanData.array(axis=0)
                 arr[:, 1] = other.array(axis=0)
@@ -179,7 +218,10 @@ class PreProcess:
     def list(self) -> list:
         """Returns a list"""
         if isinstance(self.data, (list, tuple)):
-            return list(self.data)
+            if isinstance(self.data, tuple):
+                return list(self.data)
+            else:
+                return self.data
         else:
             raise AttributeError("PreProcess data must be a list or tuple prior to this method call.")
 
@@ -190,12 +232,18 @@ class PreProcess:
         else:
             raise AttributeError("PreProcess data must be a list or tuple prior to this method call.")
 
-    def array(self, axis: int = 0) -> np.ndarray:
+    def array(self, axis: int = 0, ts: bool = False) -> np.ndarray:
         """Returns an np.ndarray"""
-        if axis == 0:
-            return np.array(self.data)
+        if ts:
+            arr = np.ones((self.data.__len__(), 2))
+            arr[:, 0] = self.data
+            arr[:, 1] = list(range(self.data.__len__()))
+            return arr.reshape((2, self.data.__len__()))
         else:
-            return np.array(self.data).reshape(self.len, 1)
+            if axis == 0:
+                return np.array(self.data)
+            else:
+                return np.array(self.data).reshape(self.len, 1)
 
     def dataframe(self, index: list = None, name: str = None) -> DataFrame:
         """Returns a pd.DataFrame"""
