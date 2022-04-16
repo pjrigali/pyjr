@@ -120,12 +120,18 @@ class Data:
         """Returns a tuple"""
         return tuple(self.data)
 
-    def array(self, axis: int = 0) -> np.ndarray:
+    def array(self, axis: int = 0, ts: bool = False) -> np.ndarray:
         """Returns an np.ndarray"""
-        if axis == 0:
-            return np.array(self.data)
+        if ts:
+            arr = np.ones((self.data.__len__(), 2))
+            arr[:, 0] = self.data
+            arr[:, 1] = list(range(self.data.__len__()))
+            return arr.reshape((2, self.data.__len__()))
         else:
-            return np.array(self.data).reshape(self.len, 1)
+            if axis == 0:
+                return np.array(self.data)
+            else:
+                return np.array(self.data).reshape(self.len, 1)
 
     def dataframe(self, index: list = None, name: str = None) -> DataFrame:
         """Returns a pd.DataFrame"""
