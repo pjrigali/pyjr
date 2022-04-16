@@ -24,3 +24,13 @@ def _len(l1: int, l2: int) -> bool:
         return True
     else:
         raise AttributeError("(len1: {} ,len2: {} ) Lengths are not the same.".format(l1, l2))
+
+
+def _get_fit_pred(data, fp: str, ttv: str):
+    if fp == 'fit':
+        return {'train': (data.x_train, data.y_train), 'test': (data.x_test, data.y_test),
+                'valid': (data.x_valid, data.y_valid)}[ttv]
+    elif fp == 'pred':
+        return {'train': data.x_train, 'test': data.x_test, 'valid': data.x_valid}[ttv]
+    elif fp == 'score':
+        return {'train': data.y_train, 'test': data.y_test, 'valid': data.y_valid}[ttv]
