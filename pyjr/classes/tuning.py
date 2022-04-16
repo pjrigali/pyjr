@@ -1,5 +1,5 @@
 """
-Hyperparameter tuning class.
+Hyper-parameter tuning class.
 
 Usage:
  ./models/tuning.py
