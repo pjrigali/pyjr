@@ -131,7 +131,7 @@ def _mtype(d, dtype: str = 'list') -> Union[list, tuple]:
             return d.tolist()
         else:
             return tuple(d.tolist())
-    elif isinstance(d, (set, KeysView, ValuesView, Index)):
+    elif isinstance(d, (set, KeysView, ValuesView, Index, list, tuple)):
         return {'list': list, 'tuple': tuple}[dtype](d)
     elif isinstance(d, (int, float, str, object, np.int_, np.float_, np.str, np.object)):
         if dtype == 'list':
@@ -144,10 +144,13 @@ def _mtype(d, dtype: str = 'list') -> Union[list, tuple]:
 
 def _type(v: Union[float, int, str, object], dtype: str = 'float') -> Union[float, int, str, object]:
     """Converts value to a set type"""
-    if isinstance(v, {'float': float, 'int': int, 'str': str, 'object': object}[dtype]):
+    if dtype == 'none':
         return v
     else:
-        return {'float': float, 'int': int, 'str': str, 'object': object}[dtype](v)
+        if isinstance(v, {'float': float, 'int': int, 'str': str, 'object': object}[dtype]):
+            return v
+        else:
+            return {'float': float, 'int': int, 'str': str, 'object': object}[dtype](v)
 
 
 def _check_type(d: Union[list, tuple], dtype: str = 'float') -> tuple:
@@ -210,7 +213,7 @@ def _rval(d: list, na: str = 'median', std_value: int = 3, cap_zero: bool = True
     elif na == 'median':
         return _percentile_(d=_rnan(d=d), q=median_value)
     elif na == 'none':
-        return None
+        return
 
 
 def _replace_na(d: Union[list, tuple], rval: float = None) -> Union[list, tuple]:
