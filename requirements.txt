@@ -11,3 +11,4 @@ statsmodels>=0.13.2
 six>=1.16.0
 yellowbrick>=1.4
 feature-engine>=1.2.0
+holidays>=0.13
