@@ -8,10 +8,11 @@ Author:
  Peter Rigali - 2022-03-30
 """
 from typing import Union, List
+from pyjr.utils.tools.clean import _prep
 import numpy as np
 
 
-def _unique_values(data: Union[list, tuple], count: False):
+def _unique_values(data: Union[list, tuple], count: bool = False):
     """
     Finds unique values from a list.
 
@@ -71,3 +72,21 @@ def _dis(c1: List[float], c2: List[float]) -> float:
 
     """
     return round(np.sqrt((c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2), 4)
+
+
+def tru_dic(d, na: str = 'none', dtype: str = 'none') -> dict:
+    """
+
+    Returns a dictionary from a list with True as the values.
+
+    :param d: List, array, series like object.
+    :param na: How to handle na values in the list object.
+    :type na: str
+    :param dtype: What type to convert the list values to.
+    :type dtype: str
+    :example: *None*
+    :note: *None*
+
+    """
+    d = _prep(d=d, mtype='tuple', na=na, dtype=dtype)
+    return {i: True for i in d}
