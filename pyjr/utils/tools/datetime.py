@@ -15,6 +15,18 @@ HOLIDAYS_US = holidays.US()
 
 
 def to_datetimes(d, fmt: str = '%m/%d/%y', mtype: str = 'tuple', from_timestamps: bool = False) -> Union[list, tuple]:
+    """
+    Returns a list or tuple of DateTime objects, from strings.
+
+    :param d: List like object.
+    :param fmt: Desired format of input strings.
+    :type fmt: str
+    :param mtype: Desired output type. {tuple or list}
+    :type mtype: str
+    :param from_timestamps: If inputs are in timestamp number format. Default is False.
+    :type from_timestamps: bool
+    :rtype: List or Tuple
+    """
     if from_timestamps is True:
         return _mtype(d=[datetime.fromtimestamp(i) for i in d], dtype=mtype)
     else:
@@ -22,6 +34,14 @@ def to_datetimes(d, fmt: str = '%m/%d/%y', mtype: str = 'tuple', from_timestamps
 
 
 def to_date_strs(d, mtype: str = 'tuple') -> Union[list, tuple]:
+    """
+    Returns a list or tuple of DateTimes in string format.
+
+    :param d: List like object.
+    :param mtype: Desired output type. {tuple or list}
+    :type mtype: str
+    :rtype: List or Tuple
+    """
     lst = []
     for date in d:
         s = str(date.year)
@@ -38,6 +58,17 @@ def to_date_strs(d, mtype: str = 'tuple') -> Union[list, tuple]:
 
 
 def group_by(d: Union[list, tuple], method: str = 'y', mtype: str = 'tuple') -> dict:
+    """
+    Groups DateTime objects by year, month or year and month.
+
+    :param d: List like object.
+    :type d: List or Tuple.
+    :param method: What to group the values by.
+    :type method: str
+    :param mtype: Desired output type. {tuple or list}
+    :type mtype: str
+    :rtype: dict
+    """
     if method == 'y':
         dic, c_dic = {}, {}
         for date in d:
@@ -66,6 +97,17 @@ def group_by(d: Union[list, tuple], method: str = 'y', mtype: str = 'tuple') -> 
 
 
 def unique_dates(d: Union[list, tuple], method: str = 'y', mtype: str = 'tuple') -> Union[list, tuple]:
+    """
+    Groups DateTime objects by year, month or year and month, then returns the unique dates.
+
+    :param d: List like object.
+    :type d: List or Tuple.
+    :param method: What to group the values by.
+    :type method: str
+    :param mtype: Desired output type. {tuple or list}
+    :type mtype: str
+    :rtype: List or Tuple.
+    """
     if method == 'y':
         lst, c_dic = [], {}
         for date in d:
@@ -91,6 +133,15 @@ def unique_dates(d: Union[list, tuple], method: str = 'y', mtype: str = 'tuple')
 
 
 def next_business_day(date, days: int = 1):
+    """
+    Returns next day that isn't a holiday or weekend.
+
+    :param date: Input DateTime object.
+    :type date: DateTime object
+    :param days: Default number of days to add.
+    :type days: int
+    :rtype: DateTime object
+    """
     d = date + timedelta(days=days)
     while d.weekday() in holidays.WEEKEND or d in HOLIDAYS_US:
         d += timedelta(days=days)
@@ -98,4 +149,15 @@ def next_business_day(date, days: int = 1):
 
 
 def to_dt(y: int, m: int = 1, d: int = 1):
+    """
+    Returns a DateTime object from input integers.
+
+    :param y: Input year.
+    :type y: int
+    :param m: Input month.
+    :type m: int
+    :param d: Input day.
+    :type d: int
+    :rtype: DateTime object
+    """
     return datetime(year=y, month=m, day=d)
